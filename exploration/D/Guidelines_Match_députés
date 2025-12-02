@@ -1,0 +1,71 @@
+## Quelles options possibles et disponibles ? 
+
+
+### L'option de base lacunaire : les informations d'état civique donné par l'AN 
+
+Jeu de données en open acces disponible sur le site open data de l'Assemblée nationale avec État civil des personnes qui sont ou qui ont été députés, sénateurs et ministres (précisant pour ces derniers l'intitulé de leur ministère)
+--> **Gros soucis puisque ne contient par leur affiliation politique**
+- https://data.assemblee-nationale.fr/archives-anterieures/archives-15e/deputes-senateurs-et-ministres
+- https://data.assemblee-nationale.fr/archives-16e/deputes-senateurs-ministres
+--> dispo en json ou xml
+
+En théorie, il serait possible de retravailler nous-même ce fichier en le combinant avec d'autres pour avoir leur affiliation politique. En pratique, a déjà été réalisé par d'autres. 
+
+
+### L'option la plus facile/accessible et moins couteuse dans un premier temps et : la base de données de DATAN 
+
+Ce travail de fusion des données ouvertes de l'AN a été réalisé par Awenig Marié (post-doc au social media lab au CEVIPOl de l'ULB à Bruxelle, contact awenig.marie@ulb.be) via le site/outil DATAN (initiative aux frontières de l'académique avec un conseil scientifique présidé par Olivier Costa, et présence notamment de Isabelle Guinaudeau et Olivier Rozenberg). Les contacter via info[at]datan.fr
+
+Ce site/outil DATAN propose en open data (sur leur site et sur data.gouv) des informations et statistiques sur les groupes parlementaires et les députés. Il met notamment à disposition un jeu de données en .CSV qui présente tous les députés de l'Assemblée nationale française depuis la 12ème législature (2002) avec notamment leur historique parlementaire et leur actuel groupe politique.
+
+Les variables sont les suivantes :
+
+- id : id présente sur le site de l'Assemblée
+- legislatureLast : dernière législature où le député a eu un mandat
+- civ : genre du député
+- nom
+- prenom
+- villeNaissance : ville de naissance
+- naissance : date de naissance
+- age
+- groupe : actuel groupe parlementaire
+- groupeAbrev : abréviation du groupe
+- departementNom : nom du département dans lequel le député a été élu
+- departementCode : code du département dans lequel le député a été élu
+- circo : numéro de sa circonscription
+- datePriseFonction : date à laquelle il a pris fonction lors de la législature actuelle
+- job
+- mail
+- twitter
+- facebook
+- website
+- nombreMandats: le nombre de mandats parlementaires exercé par le député
+- experienceDepute : expérience parlementaire (en jours, mois ou années)
+- scoreParticipation : le score participation correspond au pourcentage de scrutins auquel le député a pris part en séance publique
+- scoreParticipationSpectialite : le score de participation "spécialité" correspond au pourcentage de scrutins auquel le député a pris part en séance publique et qui sont reliés à un texte législatif examiné dans la commission parlementaire du député, et donc pour lequel le député a un intérêt ou une expertise
+- scoreLoyaute : le score de loyauté correspond au pourcentage de scrutins pour lequel le député a voté sur la même ligne que son groupe parlementaire
+- scoreMajorite : le score de proximité avec la majorité présidentielle correspond au pourcentage de scrutins pour lequel le député a voté sur la même ligne que le groupe de la majorité présidentielle
+- active : "1" si le député est encore actif
+- dateMaj : dernière date de mise à jour du jeu de données
+
+==> Awenig Marié a été contacté et devrait prochainement transmettre un fichier CSV par législature étudiée (15e et 16e) avec les variables suivantes 
+
+À compléter une fois données récupérées 
+
+https://datan.fr/deputes/legislature-15
+https://datan.fr/deputes/legislature-16
+
+
+### Les critiques faites aux données de l'AN 
+
+Critiques récurrentes dans les travaux de Boelaert, Michon et Ollion, sur l’usage habituel des données de l’AN pour étudier les députés. Il s’agit de **données auto-déclaratives sujettes à la mal-déclaration, aux stratégies de présentations de soi** (mettre en avant une profession ou expérience que l’on juge plus valorisante), et à une inadéquation des catégories et données à remplir (: exemple de la profession d’origine qui ne prend pas en compte le temps passé en politique depuis).
+
+
+### Les alternatives à considérer pour plus tard 
+
+1. Demander le jeu de données constitué par l'équipe autour de Ollion, Michon et Boelaert 
+    - Systématisation d'une collecte documentaire visant à noter chaque profession occupée par les députés à partir de leurs 25 ans via les articles de presse locale, dictionnaires biographiques (lesbiographies.com et Who’s Who in France), pages Wikipédia, professions de foi, présentations de soi sur les sites et réseaux sociaux des candidats, curriculum vitae disponibles en ligne, bases de données du ministère de l’Intérieur, et données de la HATVP
+2. Constituer un jeu de données propre avec notamment les données de la HATVP ([lien](https://www.hatvp.fr/consulter-les-declarations/)) et d'autres données à réfléchir comme le RNE (https://www.data.gouv.fr/datasets/repertoire-national-des-elus-1/)
+
+Dans tous les cas, prendre en compte les critiques sur ces bases de données et les catégories qu'ils ont mobilisés. Mais se souvenir aussi de ce qui nous intéresse ici (pas forcément les professions auto-déclarées mais les affiliations partisanes, et les contextes et manières d'utilliser la "République")
+
