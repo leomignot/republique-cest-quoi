@@ -15,7 +15,7 @@
 # mais évite les faux négatifs si un jour tout passe dans un seul script
 # (sans CSV entre les étapes), ou lors d'un check manuel directement sur le DataFrame.
 # Perte assumée de la nuance "absent" (None) vs "vide" ("") sur certaines
-# colonnes natives du XML. Désactiver si besoin de check.
+# colonnes natives du XML. Désactiver si besoin de check avant écriture CSV.
 
 # %%
 # # TODO: check against NosDéputés/RegardsCitoyens <3
