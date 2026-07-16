@@ -5,8 +5,20 @@
 # Exclut les uids identifiés comme doublons/congrès et exporte un csv par législature.
 # Écrit `1_1_extract_15.csv` et `1_1_extract_16.csv`, utilisés par l'étape suivante (1_2).
 
+# %% [markdown]
+# NOTE : /!\ comportement isna() vs "" avec pandas
+# Une étape de stabilisation ("" -> None), est ici appliquée a
+# toutes les colones en sortie (activable/désactivable dans
+# `traiter_dossier_compte_rendu_lxml` (bloc Stabilisation).
+# Reproduit ici le comportement que pandas applique à l'écriture/lecture du CSV
+# (conversion "" -> NaN par défaut). Sans effet sur le csv écrit,
+# mais évite les faux négatifs si un jour tout passe dans un seul script
+# (sans CSV entre les étapes), ou lors d'un check manuel directement sur le DataFrame.
+# Perte assumée de la nuance "absent" (None) vs "vide" ("") sur certaines
+# colonnes natives du XML. Désactiver si besoin de check.
+
 # %%
-# TODO: check against NosDéputés/RegardsCitoyens <3
+# # TODO: check against NosDéputés/RegardsCitoyens <3
 
 # %%
 import os
@@ -109,7 +121,7 @@ def construire_contexte_nivpoint(root, ns):
                         _extraire_texte_avec_espacement(titre_texte_elem, ns)
                         if titre_texte_elem is not None
                         else ""
-                    )
+                    )  # /!\ -> "" plutôt que None ici sinon TypeError avec re.sub()
                     titre = re.sub(
                         r"\s+", " ", titre
                     ).strip()  # normalisation espaces multiples et retours à la ligne
@@ -329,6 +341,16 @@ def traiter_dossier_compte_rendu_lxml(
 
     if df_cumul:
         df_extraction = pd.concat(df_cumul, ignore_index=True)
+        # Stabilisation "" -> None : reproduit ici le comportement que pandas
+        # applique déjà automatiquement à l'écriture/lecture du CSV (conversion
+        # "" -> NaN par défaut). Sans effet sur le CSV écrit, mais évite les
+        # faux négatifs si un jour tout passe dans un seul script (sans CSV entre
+        # les étapes), ou lors d'un check manuel directement sur le DataFrame.
+        # Perte assumée de la nuance "absent" (None) vs "vide" ("") sur certaines
+        # colonnes natives du XML.
+        for col in df_extraction.columns:
+            df_extraction[col] = df_extraction[col].replace("", None)
+
         print(f"\n Extraction terminée : {len(df_extraction)} lignes consolidées")
         return df_extraction
     else:
