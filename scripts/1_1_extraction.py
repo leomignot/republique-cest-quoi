@@ -11,7 +11,7 @@
 # toutes les colones en sortie (activable/désactivable dans
 # `traiter_dossier_compte_rendu_lxml` (bloc Stabilisation).
 # Reproduit ici le comportement que pandas applique à l'écriture/lecture du CSV
-# (conversion "" -> NaN par défaut). Sans effet sur le csv écrit,
+# (conversion "" -> vide/NaN par défaut). Sans effet sur le csv écrit,
 # mais évite les faux négatifs si un jour tout passe dans un seul script
 # (sans CSV entre les étapes), ou lors d'un check manuel directement sur le DataFrame.
 # Perte assumée de la nuance "absent" (None) vs "vide" ("") sur certaines
@@ -343,7 +343,7 @@ def traiter_dossier_compte_rendu_lxml(
         df_extraction = pd.concat(df_cumul, ignore_index=True)
         # Stabilisation "" -> None : reproduit ici le comportement que pandas
         # applique déjà automatiquement à l'écriture/lecture du CSV (conversion
-        # "" -> NaN par défaut). Sans effet sur le CSV écrit, mais évite les
+        # "" -> vide/NaN par défaut). Sans effet sur le CSV écrit, mais évite les
         # faux négatifs si un jour tout passe dans un seul script (sans CSV entre
         # les étapes), ou lors d'un check manuel directement sur le DataFrame.
         # Perte assumée de la nuance "absent" (None) vs "vide" ("") sur certaines
