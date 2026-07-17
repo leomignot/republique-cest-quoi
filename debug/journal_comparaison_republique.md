@@ -286,63 +286,56 @@ qui veut la faire haïr ? « Si je vs VS la faire haïr ? Si je n'étais (notre 
 nous signalements pour VS signalementspour (nous en ligne)
 
 
-eux « Quel est le républicain, de celui qui veut faire aimer la République ou de celui qui veut la faire haïr ? Si je n'étais pas républicain,
-nous « Quel est le républicain, de celui qui veut faire aimer la république ou de celui qui veut la faire haïr ? « Si je n'étais pas républicain,
+TESTS fuzzy snippets
 
-2018-07-09    50
-2017-07-03    13
-2022-11-18    11
-2023-01-12    10
-2021-02-05    10
-2022-07-11     9
-2023-06-12     8
-2024-03-06     7
-2022-10-24     7
-2018-07-12     6
-2023-12-07     6
-2024-04-04     5
-2021-02-03     5
-2019-02-11     5
-2023-06-08     4
-2023-07-04     4
-2023-07-10     4
-2019-06-24     4
-2021-11-26     4
-2024-05-14     4
-2024-05-13     4
-2019-04-09     3
-2018-07-19     3
-2023-03-20     3
-2018-07-31     3
-2023-02-10     3
-2023-01-25     3
-2019-11-05     3
-2022-12-17     3
-2021-02-11     3
-2021-02-04     3
-2022-12-01     3
-2022-11-25     3
-2022-11-15     3
-2020-03-03     3
-2020-12-03     3
-2023-05-02     3
-2021-10-27     3
-2021-10-25     3
-2021-03-09     3
-2022-12-13     3
-2021-02-12     3
-2023-03-02     3
-2023-06-06     3
-2023-10-17     3
-2023-10-12     3
-2023-07-20     3
-2023-05-09     3
-2024-05-30     3
-2019-11-07     2
+ND absents analysés fuzzy : 1209  
+Dont fuzzy >= 95 : 966  
+Dont fuzzy >= 85 (vérif manuelle ok): 997  
+Extract absents analysés fuzzy : 2579  
+Dont fuzzy >= 95 : 980  
+Dont fuzzy >= 85 (vérif manuelle ok): 1039  
 
 
+# TODO : on devrait meme en fait déterminer des snipets autour de république, mais bon
 
+# TODO : on devrait faire un total des count de match valides (vrai nb, pas présent abs) et voir si cohérent !
 # BOURRIN :
+
+NOTE : refaire au propre si veut être sur mais noramlement :
+
+
+une fois réduits aux matchs :
+df["nombre_mentions_repu_net"].sum()
+18654
+
+df_extract["nombre_mentions_repu_net"].sum()
+18794
+
+df_ND1516["nombre_mentions_repu_net"].sum()
+18984
+
+une fois réduit aux speakers et sans les congrès :
+
+df_ND1516_with_speaker["nombre_mentions_repu"].sum()
+18791
+
+== on en a plus.
+ARRÉTEZ TOUT !!!!
+
+df_extract_with_speaker["nombre_mentions_repu_net"].sum()
+18794
+
+df_ND1516_with_speaker["nombre_mentions_repu_net"].sum()
+18791
+
+df["nombre_mentions_repu_net"].sum()
+18654
+-> mais dans le fichier regroupement on a certaines supressions et tout qui sont faites.
+
+
+
+
+
 
 ============================================================
 CONFIGURATION : texte_brut
