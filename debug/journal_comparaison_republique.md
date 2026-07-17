@@ -143,7 +143,7 @@ texte_brut / texte_net × tous / avec-speaker uniquement).
 
 NOTE : la comparaison par pnum/id_syceron (identifiants) est valide dans les 4 configs.
 La comparaison par snippets, elle, repose sur une égalité de sous-chaîne exacte entre les deux corpus.
-Et elle n'est donc pertinente que sur texte_net, où les deux textes sont normalisés de façon comparable (balises, apostrophes,; espaces).
+Et elle n'est donc pertinente que sur texte_net, où les deux textes sont normalisés de façon comparable (balises, apostrophes,; espaces). (Et encore, ça foire pour d'autres raisons, plus pas parfait avec gestion des exposants, etc.)
 Sur texte_brut, elle donne un taux d'"introuvable" artificiellement proche de 100%, donc non calculée / non retenue ici. (tests réalisés pour la science quand même et pour avoir une idée)
 
 /!\ /!\ /!\ /!\ /!\ /!\ /!\ /!\ /!\ /!\ /!\ 
@@ -152,7 +152,7 @@ Sur texte_brut, elle donne un taux d'"introuvable" artificiellement proche de 10
 
 #### a) pnum vs id_syceron
 
-> NOTE / TODO : ajouter une colone des matchs repu, c'est confusionnant sinon
+> NOTE / TODO : ajouter une colone des matchs repu total, ça ajoute de la confusion sinon
 
 | Configuration        | Lignes ND | Absentes de extraction | Dont mention valide de République |
 |-----------------------|----------:|--------------------------:|-----------------------------------:|
@@ -224,3 +224,185 @@ Hypothèse : les points de suspension peuvent donc révéler :
 - prioritairement ND abs de extract (l'autre sens à la limite pour la science et identifier des patterns)
 
 # Analyse complète en vrac
+
+
+pnum / syceron
+
+
+**SNIPPETS**
+Exploration des cas ND absents de notre extraction sur base snippets sur texte net + speaker.
+Première vérif
+== fichier nd_snippets_absent_de_extract_texte_net_speaker.csv
+Bien des bugs identification sur … pas toujours suivis chez nous d'espaces en debut d'intervention coupée (comme ça dans xml, varie), alors que ND est stable ?
+
+Puis réduit à ceux qui présentait pas de spécificité parenthèses ou … (check_au_moins_un == False)
+
+
+- Fichiers congrès
+une fois réduit à sans pattern spécifique :
+2018-07-09    50
+2017-07-03    13
+(14 et 56 avant réduction)
+
+**Mise en forme et patterns et différence snippet**
+
+- le cas des exposants :
+  - cas des n°-> l’amendement n<exposant>o </exposant>X. -> no X VS n°X (ou n° X)
+    - 17 "°"
+  - des exposants e sans espaces ?
+    - 7 " Ve " (vs parfois " VeRépublique") et 1 (" VeR").sum()
+- les espaces après tirets
+  - 81 ("–"), dont 48 ("– ,") 80 ("– .")
+  - "– il n'est pas là – ," vs nous qui devient bien "finances – il n'est pas là –, "
+  - (ils ont peut être bourré espace après balises partout pour être surs ?)
+- caractères spéciaux ?
+  - œ nous vs oe ND (coeur, oeuvre, voeu, etc.) -> 73
+  - pattern = "coeur | oeuvr | voeux | voeu | Woerth | oeuvr | soeur | oeillères | manoeuvre | oeuvré | soeurs | oeuvrais | Coeur | oeuvres | oecuménisme | manoeuvres | oeil" 
+  - In [68]: df.snippet.str.lower().str.contains(pattern).sum() Out[68]: 73
+    - dont : In [56]: df.snippet.str.contains("coeur").sum() Out[56]: 69
+    - In [58]: df.snippet.str.contains("voeu").sum() Out[58]: 7
+    - In [59]: df.snippet.str.contains("oeuvre").sum() Out[59]: 21
+
+
+**Après intégration fonction pattern :**
+
+ND (repu) introuvable dans extract : 1209 / 13623
+  dont patterns (dans le texte original) :
+    dont avec parentheses : 32
+    dont avec points_suspension : 617
+    dont avec caractere_œ : 33
+    dont avec mots_oe : 234
+    dont avec tiret_avant_ponctuation : 145
+  dont avec au moins un pattern (croisé) : 851
+
+Différence de fichiers :
+- œ (nous) vs oe (eux) : œuvre
+- rapporteure vs rapporteuse
+- no vs nos (numéros)
+  - avoir accepté de réintroduire dans la discussion les amendements nos (308 et 309) "no 308 et 309"
+- madame la rapporteure vs nous : madame la rapporteuse. notre version en ligne (dans madame la rapporteure, mes chers collègues, il faut donc que tout change pour que rien ne change) https://www.assemblee-nationale.fr/dyn/15/comptes-rendus/seance/session-extraordinaire-de-2016-2017/premiere-seance-du-lundi-24-juillet-2017#P998688
+Autres diff fichier :
+qui veut la faire haïr ? « Si je vs VS la faire haïr ? Si je n'étais (notre version qui est en ligne) https://www.assemblee-nationale.fr/dyn/15/comptes-rendus/seance/2e-session-extraordinaire-de-2016-2017/deuxieme-seance-du-mardi-26-septembre-2017#P1024732
+nous signalements pour VS signalementspour (nous en ligne)
+
+
+eux « Quel est le républicain, de celui qui veut faire aimer la République ou de celui qui veut la faire haïr ? Si je n'étais pas républicain,
+nous « Quel est le républicain, de celui qui veut faire aimer la république ou de celui qui veut la faire haïr ? « Si je n'étais pas républicain,
+
+2018-07-09    50
+2017-07-03    13
+2022-11-18    11
+2023-01-12    10
+2021-02-05    10
+2022-07-11     9
+2023-06-12     8
+2024-03-06     7
+2022-10-24     7
+2018-07-12     6
+2023-12-07     6
+2024-04-04     5
+2021-02-03     5
+2019-02-11     5
+2023-06-08     4
+2023-07-04     4
+2023-07-10     4
+2019-06-24     4
+2021-11-26     4
+2024-05-14     4
+2024-05-13     4
+2019-04-09     3
+2018-07-19     3
+2023-03-20     3
+2018-07-31     3
+2023-02-10     3
+2023-01-25     3
+2019-11-05     3
+2022-12-17     3
+2021-02-11     3
+2021-02-04     3
+2022-12-01     3
+2022-11-25     3
+2022-11-15     3
+2020-03-03     3
+2020-12-03     3
+2023-05-02     3
+2021-10-27     3
+2021-10-25     3
+2021-03-09     3
+2022-12-13     3
+2021-02-12     3
+2023-03-02     3
+2023-06-06     3
+2023-10-17     3
+2023-10-12     3
+2023-07-20     3
+2023-05-09     3
+2024-05-30     3
+2019-11-07     2
+
+
+
+# BOURRIN :
+
+============================================================
+CONFIGURATION : texte_brut
+============================================================
+---------- pnum vs id_syceron [texte_brut] ----------
+Lignes ND : 1391207 | absentes de l'extraction : 45410
+Dont mention valide de République : 130
+============================================================
+CONFIGURATION : texte_brut_speaker
+============================================================
+---------- pnum vs id_syceron [texte_brut_speaker] ----------
+Lignes ND : 1088105 | absentes de l'extraction : 841
+Dont mention valide de République : 81
+============================================================
+CONFIGURATION : texte_net
+============================================================
+---------- pnum vs id_syceron [texte_net] ----------
+Lignes ND : 1391207 | absentes de l'extraction : 45410
+Dont mention valide de République : 130
+---------- snippets [texte_net] ----------
+Lignes ND avec mention repu valide       : 13675
+Lignes extract avec mention repu valide  : 13095
+ND (repu) introuvable dans extract : 1229 / 13675
+  dont patterns (dans le texte original) :
+    dont avec parentheses : 32
+    dont avec points_suspension : 617
+    dont avec caractere_œ : 33
+    dont avec mots_oe : 234
+    dont avec tiret_avant_ponctuation : 145
+  dont avec au moins un pattern (croisé) : 851
+Extract (repu) introuvable dans ND : 2577 / 13095
+  dont patterns (dans le texte original) :
+    dont avec parentheses : 2032
+    dont avec points_suspension : 1049
+    dont avec caractere_œ : 492
+    dont avec mots_oe : 7
+    dont avec tiret_avant_ponctuation : 0
+  dont avec au moins un pattern (croisé) : 2413
+============================================================
+CONFIGURATION : texte_net_speaker
+============================================================
+---------- pnum vs id_syceron [texte_net_speaker] ----------
+Lignes ND : 1088105 | absentes de l'extraction : 841
+Dont mention valide de République : 81
+---------- snippets [texte_net_speaker] ----------
+Lignes ND avec mention repu valide       : 13623
+Lignes extract avec mention repu valide  : 13095
+ND (repu) introuvable dans extract : 1209 / 13623
+  dont patterns (dans le texte original) :
+    dont avec parentheses : 32
+    dont avec points_suspension : 617
+    dont avec caractere_œ : 33
+    dont avec mots_oe : 234
+    dont avec tiret_avant_ponctuation : 145
+  dont avec au moins un pattern (croisé) : 851
+Extract (repu) introuvable dans ND : 2579 / 13095
+  dont patterns (dans le texte original) :
+    dont avec parentheses : 2033
+    dont avec points_suspension : 1050
+    dont avec caractere_œ : 492
+    dont avec mots_oe : 7
+    dont avec tiret_avant_ponctuation : 0
+  dont avec au moins un pattern (croisé) : 2415
