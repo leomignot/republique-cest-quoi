@@ -1,13 +1,5 @@
 # %% [markdown]
-# # Tests embeddings ollama humanum
-
-# %%
-# Attention soucis umap avec derniere version numpy
-# puis crash kernel
-# nouvel env
-# puis voulais pas afficher les sorties vizu de bert_topic
-# Mais exécuter 2 fois les cellules à marché
-# dark magic. J'abandonne.
+# # Embeddings (par serveur ollama humanum)
 
 # %%
 import os
@@ -15,10 +7,9 @@ import time
 import json
 from pathlib import Path
 from tqdm import tqdm
-import numpy as np
 import pandas as pd
 from ollama import Client
-from datasets import Dataset, load_from_disk
+from datasets import Dataset
 from transformers import AutoTokenizer
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST")
@@ -29,7 +20,7 @@ QWEN3_EMBEDDING_RECOMMENDED_MAX = (
     32768  # valeur documentée par Qwen, pas dans les metadata Ollama
 )
 
-BATCH_SIZE = 16
+BATCH_SIZE = 16  # ou monter à 32
 MAX_RETRIES = 3
 RETRY_DELAY = 5
 
@@ -155,13 +146,13 @@ def embed_batch_with_retry(
                 model=MODEL_NAME,
                 input=batch,
                 # TODO : implémenter proprement le TODO avec un fallback ?
-                truncate=False,  # lever erreur au lieu de tronquer silencieusement.
-                # TODO : check et préciser la note
-                # NOTE : "num_ctx" spécifique a ollama, hérité de llama.cpp
-                # originellement pour contexte de chat mais dans modèle embeddings
-                # agit comme limite de troncature d'entrée ?
-                # ie pas de max_seq_length dédié dans API ollama ?
-                options={"num_ctx": 32768},  # ici la valeur recommandée
+                truncate=False,  # lever erreur si dépasse au lieu de tronquer silencieusement.
+                # NOTE : Ollama utilise `num_ctx` pour définir la taille maximale de
+                # contexte du modèle. Pour un modèle d'embeddings, correspond à la
+                # longueur maximale du texte pouvant être encodé avant troncature.
+                options={
+                    "num_ctx": QWEN3_EMBEDDING_RECOMMENDED_MAX
+                },  # ici 32768, la valeur recommandée
             )
             return response["embeddings"]
         except Exception as e:
@@ -235,8 +226,8 @@ def build_final_dataset(df: pd.DataFrame) -> Dataset:
 # %%
 # Définition du dataset
 
-# # pour tests, réduire le nombre de textes à traiter
-df = df.head(1000)  # Ne traiter que les X premiers textes
+# # # pour tests, réduire le nombre de textes à traiter
+# df = df.head(1000)  # Ne traiter que les X premiers textes
 
 texts = df["texte"].tolist()
 
@@ -249,86 +240,3 @@ compute_embeddings_incremental(texts)
 
 # Étape 2 : une fois terminé, on construit le dataset final propre
 dataset = build_final_dataset(df)
-
-# %% [markdown]
-# ## Tests vérification entre fichiers et versions
-
-# %%
-import numpy as np
-from numpy.linalg import norm
-
-
-def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    return np.dot(a, b) / (norm(a) * norm(b))
-
-
-def compare_embeddings(emb_a: np.ndarray, emb_b: np.ndarray, tolerance: float = 1e-5):
-    assert emb_a.shape == emb_b.shape, (
-        f"Shapes différentes : {emb_a.shape} vs {emb_b.shape}"
-    )
-
-    exact = np.array_equal(emb_a, emb_b)
-    close = np.allclose(emb_a, emb_b, atol=tolerance)
-    cos_sims = np.array(
-        [cosine_similarity(emb_a[i], emb_b[i]) for i in range(len(emb_a))]
-    )
-
-    print(f"Identiques (exact)        : {exact}")
-    print(f"Identiques (tolérance)    : {close}")
-    print(f"Similarité cosinus moyenne: {cos_sims.mean():.6f}")
-    print(f"Similarité cosinus min    : {cos_sims.min():.6f}")
-
-    return exact, close, cos_sims
-
-
-# %%
-from datasets import load_from_disk
-import numpy as np
-
-dataset = load_from_disk(FINAL_DATASET_DIR)
-
-# .select() est lazy et efficace, pas de chargement complet en RAM
-subset = dataset.select(range(1000))
-
-docs_subset = list(subset["texte"])
-emb_subset = np.array(subset["embedding"])
-
-import json
-
-
-def load_first_n_embeddings_jsonl(path, n: int) -> np.ndarray:
-    embeddings = []
-    with open(path) as f:
-        for i, line in enumerate(f):
-            if i >= n:
-                break
-            embeddings.append(json.loads(line))
-    return np.array(embeddings)
-
-
-# %%
-N = 1000
-EMBEDDINGS_JSONL = "../models/embeddings_checkpoint/embeddings.jsonl"
-
-# Depuis le JSONL (calcul brut)
-emb_jsonl = load_first_n_embeddings_jsonl(EMBEDDINGS_JSONL, N)
-
-# Depuis le Dataset final (après assemblage)
-dataset = load_from_disk(FINAL_DATASET_DIR)
-subset = dataset.select(range(N))
-emb_dataset = np.array(subset["embedding"])
-
-exact, close, cos_sims = compare_embeddings(emb_jsonl, emb_dataset)
-
-# %%
-hier = dataset = load_from_disk(
-    "../models/embeddings/qwen3-8b_embeddings_2026-07-21/dataset_with_embeddings"
-)
-hier = dataset.select(range(N))
-hier = np.array(subset["embedding"])
-
-ajd = dataset = load_from_disk(FINAL_DATASET_DIR)
-ajd = dataset.select(range(N))
-ajd = np.array(subset["embedding"])
-
-exact, close, cos_sims = compare_embeddings(ajd, hier)
