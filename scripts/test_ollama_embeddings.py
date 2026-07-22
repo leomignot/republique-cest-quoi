@@ -1,5 +1,11 @@
 # %% [markdown]
-# # Embeddings (par serveur ollama humanum)
+# # 5-1 - Calcul des embeddings (serveur Ollama Huma-Num)
+# Lit les interventions mentionnant la République (sortie de 3-1). Calcule
+# des embeddings de texte via un modèle Qwen3-Embedding-8B servi par Ollama,
+# avec reprise incrémentale en cas d'interruption (checkpoint JSONL).
+# Un scan préalable de la taille des textes en tokens permet de vérifier
+# que la fenêtre de contexte choisie est adaptée avant de lancer le calcul.
+# Écrit un Dataset HuggingFace (texte + embedding) sur disque.
 
 # %%
 import os
@@ -12,42 +18,45 @@ from ollama import Client
 from datasets import Dataset
 from transformers import AutoTokenizer
 
+PATH_ENTREE = "../data/interim/3_1_df_repu.csv"
+
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST")
 client = Client(host=OLLAMA_HOST)
 
 MODEL_NAME = "qwen3-embedding:8b"
-QWEN3_EMBEDDING_RECOMMENDED_MAX = (
-    32768  # valeur documentée par Qwen, pas dans les metadata Ollama
-)
+# valeur documentée par Qwen, pas identique métadonnées Ollama/trasnformers HF
+# (cf. section scan ci-dessous)
+QWEN3_EMBEDDING_RECOMMENDED_MAX = 32768
+
 
 BATCH_SIZE = 16  # ou monter à 32
 MAX_RETRIES = 3
-RETRY_DELAY = 5
+RETRY_DELAY = 5  # secondes
 
 CHECKPOINT_DIR = Path("../models/embeddings_checkpoint")
 CHECKPOINT_DIR.mkdir(exist_ok=True)
 EMBEDDINGS_JSONL = CHECKPOINT_DIR / "embeddings.jsonl"
 FINAL_DATASET_DIR = Path("../models/embeddings/dataset_with_embeddings")
 
+# %%
 # Charger le dataset cible
-df = pd.read_csv("../data/interim/3_1_df_repu.csv")
-
+df = pd.read_csv(PATH_ENTREE)
+print("Shape du df chargé : ", df.shape)
 
 # %% [markdown]
-# ## Scan des tailles de textes par token
+# ## Estimation des tailles de textes en nombre de tokens
+# NOTE : le tokenizer chargé ici (transformers) n'est pas celui réellement
+# utilisé par Ollama pour l'embedding, mais donne une estimation utile du
+# nombre de tokens par texte (information absente de l'API Ollama).
+
 
 # %%
-# ===================================================
-# Scan des tailles de textes par token
-# ===================================================
-
-# Charge le tokenizer Qwen depuis transformers
-# pas celui utilisé pour embedding mais utile pour avoir estimation tokens
-# (pas dans API publique ollama)
+# ====================================================
+# Estimation des tailles de textes en nombre de tokens
+# ====================================================
 
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-Embedding-8B")
 
-# %%
 # ---------- fonctions diag taille contexte et nb tokens par texte ----------
 
 
@@ -69,12 +78,13 @@ def get_model_context_length(model_name: str = MODEL_NAME) -> int:
 
 
 def analyze_token_lengths(texts: list[str]) -> pd.DataFrame:
-    """Calcule la longueur en tokens de chaque texte et retourne un DataFrame de stats."""
+    """Calcule la longueur en tokens de chaque texte."""
     lengths = [len(tokenizer.encode(text)) for text in texts]
     return pd.Series(lengths)
 
 
 def print_token_stats(texts: list[str]):
+    """Affiche les statistiques de longueur en tokens et les seuils de dépassement."""
     lengths = analyze_token_lengths(texts)
 
     print(f"Nombre de textes : {len(lengths)}")
@@ -96,6 +106,9 @@ def print_token_stats(texts: list[str]):
 
 
 # %%
+# passage des textes en liste
+texts = df["texte"].tolist()
+
 # ---------- Renvoi des infos ----------
 
 # Renvoi des infos taille modèle
@@ -120,13 +133,13 @@ print("\n-------------------------------------------------------------")
 print("Calcul tokens par textes :")
 
 
-texts = df["texte"].tolist()
-
-
 lengths = print_token_stats(texts)
 
 # %% [markdown]
-# ## Calcul des embeddings par serveur ollama
+# ## Calcul des embeddings par serveur Ollama
+# NOTE : reprise incrémentale gérée via le nombre de lignes déjà écrites dans
+# EMBEDDINGS_JSONL (pas de fichier de progression séparé) : relancer ce
+# script après une interruption reprend automatiquement où il s'était arrêté.
 
 # %%
 # =========================================
@@ -140,19 +153,22 @@ lengths = print_token_stats(texts)
 def embed_batch_with_retry(
     batch: list[str], max_retries: int = MAX_RETRIES
 ) -> list[list[float]]:
+    """Calcule les embeddings d'un batch de textes, avec re-tentatives en cas d'erreur serveur.
+    NOTE : si un jour textes plus (=trop) longs, implémenter un fallback propre en cas d'erreur
+    levée par truncate=false, plutôt que juste lever une erreur. Ici ok car < context max recommandé.
+    """
     for attempt in range(1, max_retries + 1):
         try:
             response = client.embed(
                 model=MODEL_NAME,
                 input=batch,
-                # TODO : implémenter proprement le TODO avec un fallback ?
-                truncate=False,  # lever erreur si dépasse au lieu de tronquer silencieusement.
-                # NOTE : Ollama utilise `num_ctx` pour définir la taille maximale de
-                # contexte du modèle. Pour un modèle d'embeddings, correspond à la
-                # longueur maximale du texte pouvant être encodé avant troncature.
+                truncate=False,  # lever une erreur si dépassement au lieu de tronquer silencieusement.
+                # NOTE : Ollama utilise num_ctx pour la taille max de contexte. Pour un
+                # modèle d'embeddings, correspond à la longueur max de texte encodable
+                # avant troncature.
                 options={
                     "num_ctx": QWEN3_EMBEDDING_RECOMMENDED_MAX
-                },  # ici 32768, la valeur recommandée
+                },  # ici = 32768, la valeur recommandée à 32k
             )
             return response["embeddings"]
         except Exception as e:
@@ -166,6 +182,7 @@ def embed_batch_with_retry(
 
 
 def append_embeddings(batch_embeddings: list[list[float]]):
+    """Ajoute un batch d'embeddings au fichier de checkpoint JSONL."""
     with open(EMBEDDINGS_JSONL, "a") as f:
         for emb in batch_embeddings:
             f.write(json.dumps(emb) + "\n")
@@ -180,11 +197,13 @@ def count_saved_embeddings() -> int:
 
 
 def load_embeddings_jsonl() -> list[list[float]]:
+    """Recharge tous les embeddings déjà calculés depuis le checkpoint JSONL."""
     with open(EMBEDDINGS_JSONL) as f:
         return [json.loads(line) for line in f]
 
 
 def compute_embeddings_incremental(texts: list[str], batch_size: int = BATCH_SIZE):
+    """Calcule les embeddings manquants par batch, avec reprise automatique."""
     start_index = count_saved_embeddings()
 
     if start_index > 0:
@@ -210,7 +229,7 @@ def compute_embeddings_incremental(texts: list[str], batch_size: int = BATCH_SIZ
 
 
 def build_final_dataset(df: pd.DataFrame) -> Dataset:
-    """Assemble texte + embeddings dans un Dataset HF, une fois le calcul terminé."""
+    """Assemble texte + embeddings dans un Dataset HuggingFace, une fois le calcul terminé."""
     embeddings = load_embeddings_jsonl()
     assert len(embeddings) == len(df), (
         f"Désalignement : {len(embeddings)} embeddings vs {len(df)} lignes du df"
@@ -223,20 +242,25 @@ def build_final_dataset(df: pd.DataFrame) -> Dataset:
     return dataset
 
 
-# %%
-# Définition du dataset
-
-# # # pour tests, réduire le nombre de textes à traiter
-# df = df.head(1000)  # Ne traiter que les X premiers textes
-
-texts = df["texte"].tolist()
-
+# %% [markdown]
+# ## Exécution
 
 # %%
-# Calcul et sauvegarde en dur
+# %%
+# ================================================
+# EXÉCUTION DU CALCUL DES EMBEDDINGS ET SAUVEGARDE
+# ================================================
 
-# Étape 1 : calcul robuste avec reprise (peut être relancé si ça plante)
+# NOTE: texts est défini plus haut, à partir du df complet.
+# Si on veut lancer sur un sous-ensemble, il faut redéfinir texts ici.
+
+# I.e : pour tests, réduire le nombre de textes à traiter :
+# df = df.head(1000)
+# texts = df["texte"].tolist()
+
+
+# ----- Step 1 : calcul avec reprise (peut être relancé si ça plante) -----
 compute_embeddings_incremental(texts)
 
-# Étape 2 : une fois terminé, on construit le dataset final propre
+# ----- Step 2 : une fois terminé, on construit le dataset final propre -----
 dataset = build_final_dataset(df)
