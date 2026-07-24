@@ -8,6 +8,9 @@
 # Écrit un Dataset HuggingFace (texte + embedding) sur disque.
 
 # %%
+# TODO : se passer de dataset ?
+
+# %%
 import os
 import time
 import json

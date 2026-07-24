@@ -9,19 +9,8 @@
 # - Passer à l'échelle de la phrase pour tout ce qui va être pour sentiment, réseau de mots, proba des termes, etc.
 # - etc.
 
-# %% [markdown]
-# Stopwords :
-# - https://maartengr.github.io/BERTopic/getting_started/tips_and_tricks/tips_and_tricks.html#document-length
-# - Instead, we can use the CountVectorizer to preprocess our documents after having generated embeddings and clustered our documents. **Personally, I have found almost no disadvantages to using the CountVectorizer to remove stopwords and it is something I would strongly advise to try out**
-# - We can also use the ClassTfidfTransformer to reduce the impact of frequent words. The end result is very similar to explicitly removing stopwords but this process does this automatically:
-#
-# ```python
-# from bertopic import BERTopic
-# from bertopic.vectorizers import ClassTfidfTransformer
-#
-# ctfidf_model = ClassTfidfTransformer(reduce_frequent_words=True)
-# topic_model = BERTopic(ctfidf_model=ctfidf_model)
-# ```
+# %%
+# TODO : se passer de dataset ?
 
 # %%
 from datasets import load_from_disk
@@ -74,7 +63,7 @@ affiliations = df["affiliation_et_gouv"].tolist()
 
 # ----- Paramètres -----
 
-# umap (pour reproductibilité, on fixe la seed)
+# UMAP
 umap_model = UMAP(
     n_neighbors=15,  # default=15
     n_components=5,  # default=5
@@ -83,32 +72,32 @@ umap_model = UMAP(
     random_state=RANDOM_SEED,  # pour reproductibilité
 )
 
-# TODO : HDBSCAN
+# HDBSCAN
+# TODO : implémenter et tweaker si besoin
 
-
-# vectorizer_model et french stopwords (avec stopwordsiso)
-# TODO : ou avec spacy ou nltk au choix ?
+# VECTORIZER
 french_stopwords = list(stopwords("fr"))
 vectorizer_model = CountVectorizer(stop_words=french_stopwords)
 
+# CTFIDF
+# Si besoin réduire impact des mots fréquents, utiliser ClassTfidfTransformer
 # ctfidf_model = ClassTfidfTransformer(reduce_frequent_words=True)
+
+# NOTE : https://maartengr.github.io/BERTopic/getting_started/tips_and_tricks/tips_and_tricks.html#removing-stop-words#
+
 
 # ----- Créer le modèle -----
 
-# Créer le modèle avec paramètres souhaités +
-# train avec les precomputed embeddings
-
+# initialiser le modèle avec paramètres
 topic_model = BERTopic(
     language="french",  # affecte l'affichage des caractères
-    embedding_model=None,  # NOTE : pas d'embedding_model puisque précalculés
+    embedding_model=None,  # pas d'embedding_model puisque pré-calculés
     umap_model=umap_model,
     vectorizer_model=vectorizer_model,  # enlever les stopwords après embbedings/clustering
     # ctfidf_model=ctfidf_model, # TODO : ou sinon utiliser ctfidf = reduce the impact of frequent word
-    # NOTE : pas de embedding_model puisque précalculés,
-    # et language= n'est pas utilisé si on passe les embeddings
 )
 
-# Fiter le modèle + transform pour extraire les topics et probabilités
+# Fit + transform en utilisant les precomputed_embeddings
 topics, probabilities = topic_model.fit_transform(
     documents=docs, embeddings=precomputed_embeddings
 )
