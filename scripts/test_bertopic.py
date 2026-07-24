@@ -32,6 +32,8 @@ from bertopic import BERTopic
 from sklearn.feature_extraction.text import CountVectorizer
 from stopwordsiso import stopwords
 from pathlib import Path
+# from bertopic.vectorizers import ClassTfidfTransformer
+
 
 DATASET_DIR = Path(
     "../models/embeddings/qwen3-8b_embeddings_2026-07-21/dataset_with_embeddings"
