@@ -24,6 +24,7 @@
 
 # %%
 from datasets import load_from_disk
+import pandas as pd
 import numpy as np
 from umap import UMAP
 from bertopic import BERTopic
@@ -37,15 +38,36 @@ DATASET_DIR = Path(
 
 RANDOM_SEED = 42
 
-# ----- Charger docs et precompuited embeddings -----
+# ----- Charger docs et precomputed embeddings -----
 
+# dataset = load_from_disk(DATASET_DIR)
+# docs = dataset[
+#     "texte"
+# ]  # NOTE: list pas obligatoire mais assure ? list(dataset["texte"])
+# precomputed_embeddings = np.array(
+#     dataset["embedding"]
+# )  # Shape : XXX * 4096 pour qwen3-embedding:8b
+
+# ----- Charger docs et precomputed embeddings + pandas -----
+# TODO: Si tout en pandas pour faciliter les manipulations
 dataset = load_from_disk(DATASET_DIR)
-docs = dataset[
-    "texte"
-]  # TODO: list pas obligatoire mais assure ? list(dataset["texte"])
-precomputed_embeddings = np.array(
-    dataset["embedding"]
-)  # Shape : XXX * 4096 pour qwen3-embedding:8b
+
+df = dataset.to_pandas()
+
+df["dateSeance_ts"] = pd.to_datetime(
+    df["dateSeance"].astype(str),
+    format="%Y%m%d%H%M%S%f",
+)
+
+df["dateSeance_day"] = df["dateSeance_ts"].dt.normalize()
+
+df["affiliation_et_gouv"] = df["affiliation_et_gouv"].fillna("Inconnu")
+
+docs = df["texte"].tolist()
+precomputed_embeddings = np.array(df["embedding"].tolist())  # reconversion nécessaire
+timestamps = df["dateSeance_ts"].tolist()
+affiliations = df["affiliation_et_gouv"].tolist()
+
 
 # ----- Paramètres -----
 
@@ -92,13 +114,41 @@ topics, probabilities = topic_model.fit_transform(
 # # Tests
 
 # %%
-topic_model.visualize_barchart()
+# # Les principales fonctions à tester pour avoir un aperçu simple :
+
+# topic_model.get_topic_info()
+# topic_model.visualize_barchart()
+# topic_model.visualize_topics()
+# topic_model.visualize_hierarchy()
+# topic_model.visualize_documents(df["Texte_clean"].to_list())
+
+# %% [markdown]
+# ## Topics
+
+# %%
+topic_model.get_topic_info()
+
+# %% [markdown]
+# ## Barchart
 
 # %%
 topic_model.visualize_barchart(
     # n_words=10,  # Select the number of words to display per topic
     # topics = [0,1,2,3,4], # Select specific topics to display
-    top_n_topics=10,  # Select the first n topics to display
+    top_n_topics=8,  # Select the first n topics to display
+    # height = 300, # Adjust the height of the plot
+    # width = 800 # Adjust the width of the plot
+)
+
+# %%
+## Visualisation documents / topics
+
+# %%
+topic_model.visualize_documents(
+    docs=docs,
+    embeddings=precomputed_embeddings,
+    hide_annotations=True,  # better readability
+    topics=[0, 1, 2, 3],  # Select topics to highlight
     # height = 300, # Adjust the height of the plot
     # width = 800 # Adjust the width of the plot
 )
@@ -106,24 +156,18 @@ topic_model.visualize_barchart(
 # %%
 topic_model.visualize_topics()
 
+# %% [markdown]
+# ## Hiérarchie des topics
+
 # %%
 topic_model.visualize_hierarchy()
 
 # %%
-topic_model.visualize_documents(docs, embeddings=precomputed_embeddings)
+hierarchical_topics = topic_model.hierarchical_topics(docs)
+print(topic_model.get_topic_tree(hierarchical_topics))
 
 # %%
-# genre crest :
-(
-    topic_model.visualize_documents(
-        docs=docs,
-        embeddings=precomputed_embeddings,
-        hide_annotations=True,  # better readability
-        topics=[0, 1, 2, 3],  # Select topics to highlight
-        # height = 300, # Adjust the height of the plot
-        # width = 800 # Adjust the width of the plot
-    )
-)
+topic_model.visualize_heatmap()
 
 # %% [markdown]
 # ## Sauvegarder
@@ -141,11 +185,98 @@ topic_model.visualize_documents(docs, embeddings=precomputed_embeddings)
 # %% [markdown]
 # # Vrac
 
-# %%
-df["DateSeance_ts"] = pd.to_datetime(df["DateSeance"], format="%Y%m%d%H%M%S%f")
-df["DateSeance_day"] = df["DateSeance_ts"].dt.normalize()  # guess it works
-
 # %% [markdown]
 # Comparaison de modèles :
 #
 # https://maartengr.github.io/BERTopic/getting_started/tips_and_tricks/tips_and_tricks.html#finding-similar-topics-between-models
+
+# %% [markdown]
+# ## Dynamic topic model
+
+# %% [markdown]
+# * `global_tuning`
+#   * Whether to average the topic representation of a topic at time *t* with its global topic representation
+# * `evolution_tuning`
+#   * Whether to average the topic representation of a topic at time *t* with the topic representation of that topic at time *t-1*
+# * `nr_bins`
+#   * The number of bins to put our timestamps into. It is computationally inefficient to extract the topics at thousands of different timestamps. Therefore, it is advised to keep this value below 20.
+#
+
+# %%
+import pandas as pd
+# docs = list(dataset["texte"])
+# embeddings = np.array(dataset["embedding"])
+
+# NOTE : timestamp simple/efficace directement en pandas parce que c'est une purge depuis dataset HF
+timestamps = pd.to_datetime(
+    pd.Series(dataset["dateSeance"]).astype(str),
+    format="%Y%m%d%H%M%S%f",
+    errors="coerce",
+).tolist()
+
+# Analyse temporelle
+topics_over_time = topic_model.topics_over_time(
+    docs=docs,
+    timestamps=timestamps,
+    global_tuning=True,
+    evolution_tuning=True,
+    nr_bins=20,
+)
+
+fig_dynamic_topic = topic_model.visualize_topics_over_time(
+    topics_over_time,
+    top_n_topics=10,
+)
+
+fig_dynamic_topic
+
+# %%
+# fig_dynamic_topic.write_html("../reports/figures/dynamic_topics.html")
+
+# %% [markdown]
+# ## Topic reduction
+
+# %%
+# topics_to_merge = [[X, Y],
+#                    [Z, W]]
+# topic_model.merge_topics(df["Texte_clean"], topics_to_merge)
+
+# %%
+# DONT : # topic_model.reduce_topics(df["Texte_clean"], nr_topics=40) # DONT, IT NUKES THE TOPICS IN MODEL
+# # Access updated topics
+# topics = topic_model.topics_
+
+# %% [markdown]
+# ### Topics per class
+
+# %%
+# ATTENTION, PLANTAIT À CAUSE DES NA
+# cf ajout précédent d'une classe "Inconnu" pour les NA dans affiliation_et_gouv
+topics_per_class = topic_model.topics_per_class(docs, classes=affiliations)
+display(topics_per_class)
+
+fig_topics_per_class = topic_model.visualize_topics_per_class(
+    topics_per_class,
+    # topics=[0, 1, 2, 3],  # choix spécifique de topics à visualiser
+    top_n_topics=10,  # choix des X principaux topics
+)
+fig_topics_per_class
+
+# %%
+# fig_topics_per_class.write_html("../reports/figures/topics_per_class.html")
+
+# %%
+# TODO: revoir regroupement des topics
+# TODO: revoir Topic distribution
+# TODO: aviser alternatives representation sur le nom des topics ?
+
+# %%
+# df["topic"] = topics
+# df["probability"] = probabilities
+
+# # joindre le nom/label du topic plutôt que juste l'ID
+# topic_info = topic_model.get_topic_info()[["Topic", "Name"]]
+# df = df.merge(topic_info, left_on="topic", right_on="Topic", how="left")
+
+# # df = df.drop(columns=["embedding"], errors="ignore")
+# # df.to_csv("../models/embeddings/export_final.csv", index=False)
