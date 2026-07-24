@@ -14,7 +14,8 @@
 # - https://maartengr.github.io/BERTopic/getting_started/tips_and_tricks/tips_and_tricks.html#document-length
 # - Instead, we can use the CountVectorizer to preprocess our documents after having generated embeddings and clustered our documents. **Personally, I have found almost no disadvantages to using the CountVectorizer to remove stopwords and it is something I would strongly advise to try out**
 # - We can also use the ClassTfidfTransformer to reduce the impact of frequent words. The end result is very similar to explicitly removing stopwords but this process does this automatically:
-# ````
+#
+# ```python
 # from bertopic import BERTopic
 # from bertopic.vectorizers import ClassTfidfTransformer
 #
@@ -203,17 +204,7 @@ topic_model.visualize_heatmap()
 #
 
 # %%
-import pandas as pd
-# docs = list(dataset["texte"])
-# embeddings = np.array(dataset["embedding"])
-
-# NOTE : timestamp simple/efficace directement en pandas parce que c'est une purge depuis dataset HF
-timestamps = pd.to_datetime(
-    pd.Series(dataset["dateSeance"]).astype(str),
-    format="%Y%m%d%H%M%S%f",
-    errors="coerce",
-).tolist()
-
+# NOTE : timestamps = df["dateSeance_day"].tolist()
 # Analyse temporelle
 topics_over_time = topic_model.topics_over_time(
     docs=docs,
