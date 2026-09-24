@@ -1,7 +1,7 @@
 # %% [markdown]
 # # 3-1 - Identifier les textes mentionnant la République
 # Lit `2_4_interventions_nettoyees.csv` (issu de 2_4). Repère les mentions
-# valides du champ lexical "républi" en excluant les faux positifs
+# valides de la famille du mot "républi" en excluant les faux positifs
 # (Les Républicains, président de la République, pays nommés "République de…", etc.)
 # via une logique d'exclusion par positions.
 # Écrit `df_repu_proportion.csv` (toutes lignes, avec colonnes de match) et
@@ -10,8 +10,6 @@
 # %%
 import pandas as pd
 import re
-
-# TODO: aviser si vire id_orateur et utiliser id_acteur partout
 
 PATH_ENTREE = "../data/interim/2_4_interventions_nettoyees.csv"
 PATH_SORTIE_PROPORTION = "../data/interim/3_1_df_repu_proportion.csv"
@@ -68,14 +66,14 @@ print("Shape du df chargé : ", df.shape)
 
 # Garde-fou générique (indépendant du nettoyage) : au cas où des lignes
 # auraient un texte manquant ou vide à ce stade du pipeline.
-# (normalement déjà filtré en amont, mais on double-checke ici pour éviter des erreurs)
+# (normalement déjà filtré en amont, mais on double-check ici pour éviter des erreurs)
 df = df[df["texte"].notna() & (df["texte"] != "")]
 print("Shape après garde-fou texte manquant/vide : ", df.shape)
 
 # %% [markdown]
 # ## Regex
 # Logique de l'identification des mentions valides de République :
-# - regex sur le champ lexical "républi"
+# - regex sur la famille du mot "républi"
 # - mais exclusion de certains termes (positions, pas de chaînage) car les
 # termes exclus peuvent apparaître aussi avec les termes voulus (les idées
 # républicaines sont menacées par Les Républicains) : chaîner risquerait
@@ -133,27 +131,24 @@ pattern_excl_case_sensitive = re.compile(
 # Expressions à exclure - ignorer la casse
 pattern_excl_case_insensitive = re.compile(
     # --- Partis et groupes politiques ---
-    # TODO : confirmation MATTHIAS POUR EXCLUSIONS NV CAS PARTIS
     r"(?:\bgauche démocrate et républicaine\b)"  # premier sans |
-    r"|(?:\bGauche démocrate républicaine\b)"  # (feinte) ajout léo
-    r"|(?:\bGauche démocratique et Républicaine\b)"  # (feinte) ajout léo
+    r"|(?:\bGauche démocrate républicaine\b)"  # variante
+    r"|(?:\bGauche démocratique et Républicaine\b)"  # variante
     r"|(?:\bgauche démocrate et républicaine-NUPES\b)"
     r"|(?:\bsocialiste, écologiste et républicain\b)"
-    r"|(?:\bgroupe socialiste et républicain\b)"  # ajout léo (garder groupe pour limiter flag)
-    r"|(?:\bcommuniste républicain citoyen et écologiste\b)"  # ajout léo
+    r"|(?:\bgroupe socialiste et républicain\b)"  # garder "groupe" pour limiter flag
+    r"|(?:\bcommuniste républicain citoyen et écologiste\b)"
     r"|(?:\brépublique en marche\b)"
-    r"|(?:\bconstructifs : républicains, UDI, indépendants\b)"  # ajout léo
-    r"|(?:\bconstructifs : républicains, UDI et apparentés\b)"  # (feinte) ajout léo
-    r"|(?:\bLes Indépendants - République et Territoires\b)"  # ajout léo
-    r"|(?:\bLes Indépendants-République et Territoires\b)"  # (feinte) ajout léo
-    # TODO : aviser
-    # "Rassemblement pour la République" RPR 1 cas -> mais risque appel rassemblement sensible casse ?
+    r"|(?:\bconstructifs : républicains, UDI, indépendants\b)"
+    r"|(?:\bconstructifs : républicains, UDI et apparentés\b)"  # variante
+    r"|(?:\bLes Indépendants - République et Territoires\b)"
+    r"|(?:\bLes Indépendants-République et Territoires\b)"  # variante
     # NOTE : ont également été testés (0 cas ici, mais voir selon autres législatures)
     # "Union des démocrates pour la République" UDR  / "Union des droites pour la République"
     # "Union pour une Nouvelle République" / "Debout la République"
     # "Forum des républicains sociaux" / "Identité et République"
+    # "Rassemblement pour la République" RPR =  1 cas -> mais risque faux positif (appel au rassemblement)
     # --- Fonctions et institutions ---
-    # TODO : MATTHIAS CHOISI POUR exclusion présidente(s) de la république
     r"|(?:\bprésidents? de la république\b)"
     r"|(?:\bprésidentes? de la république\b)"  # 7 cas pour féminiser la fonction ou souhaiter élection MLP
     r"|(?:\bprésidences? de la république\b)"
@@ -200,18 +195,17 @@ pattern_excl_case_insensitive = re.compile(
     re.I,
 )
 
-# TODO / NOTE : quelques (~10) "république islamique" sans précision pour parler de l'Iran
-# mais risque de supprimer d'autres occurrences que l'on veut garder,
-# ou alors aviser majuscule a République vs sans ? -> trop niche
+# NOTE : quelques (~10) "république islamique" sans précision pour parler de l'Iran
+# mais risque de supprimer d'autres occurrences que l'on veut garder.
 
 
 # Fonction de décompte des occurrences
 def count_lexical_outside_excl(text):
     """
-    Compte les occurrences valides du champ lexical "républi" (hors zones
+    Compte les occurrences valides de la famille du mot "républi" (hors zones
     d'exclusion). Early-exit via pattern_lexical.search() avant de calculer
     les positions d'exclusion (coûteux, notamment la liste de pays) : utile
-    car la grande majorité des textes ne contiennent aucune occurrence.
+    car la grande majorité des textes ne contient aucune occurrence.
 
     NOTE : l'ancienne fonction contains_lexical_outside_excl() a été
     supprimée (07/07/2026) : elle est strictement équivalente à
@@ -239,36 +233,6 @@ def count_lexical_outside_excl(text):
     return sum(1 for m in pattern_lexical.finditer(text) if not in_excl(m.start()))
 
 
-# Ancienne fonction bool (07/07/2026) : redondante avec count_lexical_outside_excl() > 0, donc supprimée.
-# gardée pour référence
-# (et si besoin d'appliquer à un gros volume sans compter toutes les occurences = plus rapide)
-# def contains_lexical_outside_excl(text):
-#     """
-#     Renvoie True si le texte contient au moins une occurrence du champ
-#     lexical "républi" en dehors des zones d'exclusion.
-#     NOTE : on pourrait optimiser via spans triés + bisect (et fusionner les
-#     positions d'exclusion), pas indispensable ici et plus complexe.
-#     """
-#     # si pas de match lexical inutile d'aller plus loin
-#     if not pattern_lexical.search(text):
-#         return False
-#     # Collecter les spans exclus
-#     # en ajoutant les exclusions sensibles et insensibles à la casse
-#     excl_positions = [m.span() for m in pattern_excl_case_sensitive.finditer(text)] + [
-#         m.span() for m in pattern_excl_case_insensitive.finditer(text)
-#     ]
-
-#     # Fonction pour vérifier si une position est dans une zone exclue
-#     def in_excl(pos):
-#         for start, end in excl_positions:
-#             if start <= pos < end:
-#                 return True
-#         return False
-
-#     for match in pattern_lexical.finditer(text):
-#         if not in_excl(match.start()):
-#             return True
-#     return False
 
 # %%
 # bloc d'essai
