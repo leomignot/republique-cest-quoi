@@ -14,16 +14,16 @@
 ## À voir
 
 ## 1-extraction
-- [ ] SOUCIS REGROUPEMENT INTERVENTIONS FOIRE -> nouvelle version semble okayish
+- [X] SOUCIS REGROUPEMENT INTERVENTIONS FOIRE -> nouvelle version semble okayish
   - toujours un mini écart, semble plus stable de pas trier les fichiers par numéro ordre  :
   - les interventions sont déjà dans l'ordre, les id numérotés semblent pas super stables ?
   - et donc au final le résultat semble meilleur sans réappliquer de tri. Mais pq cet écart ?
   - tester avec le id_syceron ? -> test réalisé, c'est naze.
 - [X] EXCLURE LAMARTINE OU PAS ? -> DONE = non : passage des acteurs restant en externes
 - [X] récupération des points de contexte parents(cf tentative Matthias) = DONE
-- [ ] check par matthias si contexte est OK.
-- [ ] check repu against ND
-- [ ] IMPORTANT : check si implementation gestion balises <br/> ET italique est ok
+- [X] check par matthias si contexte est OK.
+- [X] check repu against ND
+- [X] IMPORTANT : check si implementation gestion balises <br/> ET italique est ok
   - [ ] aviser si veut pareil pour balises exposants (AN gère pas toujours de manière constante le fait de mettre un espace final avant fermeture de l'exposant - )parfois voulu parfois non ?)
     - [ ] ex : Vous êtes le plus jeune vice-président de l’histoire de la V<exposant>e</exposant><exposant/>République.
     - [ ] cas des n°-> l’amendement n<exposant>o </exposant>359. -> no 359 VS dans ND n°359 (ou n° 359)
@@ -35,8 +35,6 @@
   - [X] IE :voir ce qui foire pour rappel réglement sur plusieurs lignes et aussi les points avec (suite) sur autre ligne
   - [X] ex : CRSANR5L15S2017E1N007, CRSANR5L15S2018E1N027, CRSANR5L15S2018O1N284
   - [X] en fait comme ça en partie dans fichiers originaux, correction : passage dans fonction gestion balises + supr séparé des espace multiples et retour ligne
-  - 
-
 
 ## 2-clean&filter
 
@@ -50,7 +48,7 @@
   - [X] désormais géré par le fait que conserve une trace sur-imprimée de nom_orateur sur nom_orateur_clean quand on en a pas si PA0
 - [X] Vérif cas de nom orateur sans nom orateur clean plus qu'1 (cf depuis gestion en cas de PA0)
 - [X] Vérif cas de nom orateur clean sans nom orateur -> pas concluant ~13 cas (président séances autres mal identif (chenu, laporte)
-
+- [ ] 2.4 affiliation : depuis le doc mandats de la datan, repasser leur comission d'appartenance + leur "codeQualite" et libelleAbrev
 
 ## 3-identify-republic
 
@@ -59,8 +57,8 @@
 - [X] ajouter les nouveaux cas identifiés
 - [X] aviser avec la nouvelle remontée d'exclusions possibles.
 - [X] NOTE : quelques (~10) "république islamique" sans précision pour parler de l'Iran, mais risque de supprimer d'autres occurrences que l'on veut garder. Ou alors aviser majuscule a République vs sans ? -> niche, pas fait, check matthias
-- [ ] voir matthias pour un check des ajouts réalisés avec si c'est ok
-- [ ] check repu against ND
+- [X] voir matthias pour un check des ajouts réalisés avec si c'est ok
+- [X] check repu against ND
 
 ### nettoyer les textes ?
 
