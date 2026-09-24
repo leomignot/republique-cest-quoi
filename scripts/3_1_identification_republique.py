@@ -4,8 +4,8 @@
 # valides de la famille du mot "républi" en excluant les faux positifs
 # (Les Républicains, président de la République, pays nommés "République de…", etc.)
 # via une logique d'exclusion par positions.
-# Écrit `df_repu_proportion.csv` (toutes lignes, avec colonnes de match) et
-# `df_repu.csv` (seules les lignes matchées).
+# Écrit `3_1_df_repu_proportion.csv` (toutes lignes, avec colonnes de match) et
+# `3_1_df_repu.csv` (seules les lignes matchées).
 
 # %%
 import pandas as pd
@@ -231,7 +231,6 @@ def count_lexical_outside_excl(text):
         return False
 
     return sum(1 for m in pattern_lexical.finditer(text) if not in_excl(m.start()))
-
 
 
 # %%
