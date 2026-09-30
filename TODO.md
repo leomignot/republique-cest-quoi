@@ -85,3 +85,6 @@
 ## Pistes, etc.
 
 Analyses.ipynb pour le fichier ok de matthias.
+
+https://data.assemblee-nationale.fr/archives-anterieures/archives-15e/debats-en-seance-publique
+https://data.assemblee-nationale.fr/archives-16e/debats
