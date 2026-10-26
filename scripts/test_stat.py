@@ -13,7 +13,32 @@ COL_GROUPE = "affiliation_et_gouv"
 MIN_INTERV = 50  # seuil "députés retenus" pour Lorenz / Gini
 MIN_AVEC_REPU = 1  # min d'interventions avec le terme (graphiques de variabilité)
 
+# TODO: aviser couleurs, par ex depuis package R fait pour ou sa réf
+PALETTE_GROUPES = {
+    "LFI": "#B71C1C",  # rouge foncé
+    "GDR": "#ea193a",  # rouge vif
+    "ECO": "#1FAE70",  # vert
+    "SOC-A": "#F05FA8",  # rose
+    "LAREM": "#FFD83E",  # jaune
+    "DEM": "#F57C00",  # orange
+    "HOR": "#6994D6",  # bleu gris
+    "LIOT": "#C075C0",  # violet clair
+    "AGIR-E": "#2D769E",  # bleu-turquoise
+    "UDI": "#439FD1",  # bleu clair
+    "LR": "#0D47A1",  # bleu foncé
+    "RN": "#412302",  # marron foncé
+    "Autres": "#9E9E9E",
+}
 
+PALETTE_BLOCS = {
+    "Gauche": "#A92424",
+    "Centre": "#D59629",
+    "Droite": "#1F57AC",
+    "Autres": "rgb(160, 160, 160)",
+}
+
+
+# TODO: faudrait vérifier que compter séparément par groupe les interv des députés quand ils changent
 def agreger_deputes(df):
     """Une ligne par (id_acteur, groupe) : un député qui change de groupe compte dans chacun."""
     d = df.dropna(subset=[COL_ACTEUR, COL_GROUPE]).copy()
@@ -51,36 +76,37 @@ print(
 # Les 0 % ne sont pas représentables en log : exclus de ce graphique
 fig1 = px.scatter(
     dep[(dep["pct"] > 0) & (dep["n_avec"] >= MIN_AVEC_REPU)],
-    x="n_interv",
+    x="n_avec",  # ou n_interv selon ce qu'on veut
     y="pct",
     color="groupe",
     symbol="groupe",
     opacity=0.6,
-    log_x=True,
-    log_y=True,
+    log_x=False,
+    log_y=False,
     hover_name="nom",
     hover_data=["n_avec"],
     labels={
-        "n_interv": "Nombre d'interventions (log)",
+        "n_avec": "Nombre d'interventions repu (log ou pas)",
+        "n_interv": "Nombre d'interventions total (log ou pas)",
         "pct": "% interventions avec le terme",
     },
     title="Entonnoir : proportion individuelle selon le nombre d'interventions",
 )
-# Enveloppe binomiale à 95 % autour du taux global
-p0 = dep["n_avec"].sum() / dep["n_interv"].sum()
-n = np.logspace(0, np.log10(dep["n_interv"].max()), 200)
-se = np.sqrt(p0 * (1 - p0) / n)
-for sign in (1, -1):
-    fig1.add_trace(
-        go.Scatter(
-            x=n,
-            y=100 * np.clip(p0 + sign * 1.96 * se, 1e-4, 1),
-            mode="lines",
-            line=dict(color="grey", dash="dash"),
-            showlegend=False,
-        )
-    )
-fig1.add_hline(y=100 * p0, line_dash="dot", line_color="grey")
+# # Enveloppe binomiale à 95 % autour du taux global
+# p0 = dep["n_avec"].sum() / dep["n_interv"].sum()
+# n = np.logspace(0, np.log10(dep["n_interv"].max()), 200)
+# se = np.sqrt(p0 * (1 - p0) / n)
+# for sign in (1, -1):
+#     fig1.add_trace(
+#         go.Scatter(
+#             x=n,
+#             y=100 * np.clip(p0 + sign * 1.96 * se, 1e-4, 1),
+#             mode="lines",
+#             line=dict(color="grey", dash="dash"),
+#             showlegend=False,
+#         )
+#     )
+# fig1.add_hline(y=100 * p0, line_dash="dot", line_color="grey")
 
 fig1.show()
 
@@ -435,15 +461,6 @@ tableau
 # %%
 import plotly.express as px
 
-# ex palette à la noix
-palette_groupes = {
-    "LAREM": "#f0d213",
-    "LR": "#022dd9",
-    "SOC-A": "#c4187f",
-    "LFI": "#d01f08",
-    "RN": "#0b0b0b",
-}
-
 fig = px.box(
     d,
     x="affiliation_et_gouv",
@@ -458,7 +475,7 @@ fig = px.box(
         "mentions": True,
         "mentions_100_interventions": ":.2f",
     },
-    color_discrete_map=palette_groupes,
+    color_discrete_map=PALETTE_GROUPES,
     labels={
         "affiliation_et_gouv": "",
         "mentions_100_interventions": "Mentions de « République » pour 100 interventions",
@@ -536,7 +553,7 @@ fig = px.box(
         "n_avec": True,
         "pct": ":.2f",
     },
-    color_discrete_map=palette_groupes,
+    color_discrete_map=PALETTE_GROUPES,
     labels={
         "groupe": "",
         "n_interv": "Interventions",
