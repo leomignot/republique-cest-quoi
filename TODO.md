@@ -67,3 +67,10 @@
 ## Pistes, etc.
 
 Analyses.ipynb pour le fichier ok de matthias.
+
+## bertopic regroupement
+
+VÉRIF NOTRE DAME DES LANDES VS CATHÉDRALE NOTRE DAME ET EXPLOSER LA CATÉGORIE violet.
+90 = aéroport
+vs cathédrale 141 -> non ok surtout nahel et émeutes
+vs 85 pompiers - > plus chelou, sécurité civile, etc. -> mais il est a un autre embrachement à part quand tout le reste fait un groupe. Ne pas le fusionner à la couleur et grader à part puis voir si mieux ailleurs ?
