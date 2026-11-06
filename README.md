@@ -85,5 +85,3 @@ archive/    anciennes versions
 ## Licence et citation
 
 **TODO** :)
-
-# coucou so mate
