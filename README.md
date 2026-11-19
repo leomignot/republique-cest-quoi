@@ -9,7 +9,7 @@ Projet initié dans le cadre de [SICSS-Paris 2025](https://sicss.io/2025/paris/)
 >
 > **Reproductibilité** : le pipeline n'est pas encore entièrement reproductible.
 > - L'étape 2_3 utilise des données générales sur les députés (fichier Datan) dont la mise à disposition est en attente d'autorisation.
-> - L'étape 5_1 (embeddings) nécessite une clé d'accès au serveur Ollama (Huma-Num). Le fichier des embeddings calculés est mis à disposition (TODO lien à ajouter).
+> - L'étape 5_1 (embeddings) nécessite une clé d'accès à un serveur Ollama (ici Huma-Num). Le fichier des embeddings calculés est mis à disposition (TODO lien à ajouter).
 > - **TODO** : l'environnement Python (uv ou conda) reste à stabiliser.
 
 ## Pipeline
@@ -20,7 +20,7 @@ Projet initié dans le cadre de [SICSS-Paris 2025](https://sicss.io/2025/paris/)
 | 2 | `2_1` à `2_5` | Filtrage, identification des acteurs, appariement aux députés, affiliations partisanes et commissions |
 | 3 | `3_1` | Repérage des occurrences de « République » |
 | 4 | `4_1`, **TODO** | Statistiques |
-| 5 | `5_1`, **TODO** | Embeddings, topic modeling |
+| 5 | `5_1`, `5_2` **TODO** | Embeddings, topic modeling |
 
 Chaque script `.py` est jumelé à un notebook dans `notebooks/` (via [jupytext](https://jupytext.readthedocs.io/)).
 
@@ -49,11 +49,13 @@ Sorties intermédiaires (`data/interim/`) : `1_1_extract_{15,16}.csv` → `1_2_e
 
 -->
 
-**TODO**: `run_pipeline.*` ne lance pour l'instant que les étapes 1_1 à 3_1 ; `4_1` et `5_1` s'exécutent à part + enjeu clé API
+**TODO**: `run_pipeline.*` ne lance pour l'instant que les étapes `1_1` à `3_1` ; `4_1`-`5_1`-`5_2` s'exécutent à part + enjeu clé API
 
 Fichiers `test_*` dans `scripts/` et `notebooks/` : essais exploratoires, hors pipeline.
 
 ## Utilisation
+
+**TODO:**
 
 ```bash
 git clone https://github.com/leomignot/republique-cest-quoi.git
