@@ -40,6 +40,7 @@ scripts/2_5_commissions.py                  # affiliation commission à date de 
 scripts/3_1_identification_republique.py    # repérage des mentions de « républi* », exclusion faux positifs
 scripts/4_1_analysis_stats.py               # statistiques descriptives, dynamique temporelle (exploratoire)
 scripts/5_1_embeddings.py                   # embeddings des interventions
+scripts/5_2_topic_modeling.py               # topic modeling (exploratoire)
 **TODO** LA SUITE
 ```
 
