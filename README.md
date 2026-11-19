@@ -56,7 +56,7 @@ Fichiers `test_*` dans `scripts/` et `notebooks/` : essais exploratoires, hors p
 
 ## Utilisation
 
-**TODO:**
+**TODO:** stabiliser l'env + pipeline une fois analyse stabilisée
 
 ```bash
 git clone https://github.com/leomignot/republique-cest-quoi.git
@@ -87,4 +87,4 @@ archive/    anciennes versions
 
 ## Licence et citation
 
-**TODO** :)
+**TODO:** préciser licence et citation
