@@ -249,7 +249,6 @@ def build_final_dataset(df: pd.DataFrame) -> Dataset:
 # ## Exécution
 
 # %%
-# %%
 # ================================================
 # EXÉCUTION DU CALCUL DES EMBEDDINGS ET SAUVEGARDE
 # ================================================
