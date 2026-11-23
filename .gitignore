@@ -1,5 +1,32 @@
+# macOS
 .DS_Store
+
+# Virtual environments
 .env
+.venv
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Jupyter Artifacts
+*.ipynb_checkpoints/
+
+# VSCode Settings
+.vscode/
+
+# Knitr and Quarto Cache
+_cache/
+*_cache/
+_knit_cache/
+*.utf8.md
+
+# Ignore directories that store output assets from Quarto
+*_files/
 
 # Fichiers temporaires word/excel
 ~$*
@@ -14,19 +41,3 @@ files/
 # Data Files
 *.csv
 
-# Python/Jupyter Artifacts
-__pycache__/
-*.py[cod]
-*.ipynb_checkpoints/
-
-# VSCode Settings
-.vscode/
-
-# Knitr and Quarto Cache
-_cache/
-*_cache/
-_knit_cache/
-*.utf8.md
-
-# Ignore directories that store output assets from Quarto
-*_files/
