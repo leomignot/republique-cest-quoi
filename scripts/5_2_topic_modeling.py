@@ -8,7 +8,7 @@
 from datasets import load_from_disk
 import pandas as pd
 import numpy as np
-from umap import UMAP
+from umap import UMAP # attention umap-learn pour l'installation
 from bertopic import BERTopic
 from sklearn.feature_extraction.text import CountVectorizer
 from stopwordsiso import stopwords
