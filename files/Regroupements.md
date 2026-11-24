@@ -125,8 +125,8 @@ Immigration-Asile [145, 44, 117, 94, 154]
 Radicalisation X [25, 63, 30, 1, 109]  # ajout 25
 Visibilité religieuse (musulmane) [127, 68, 136, 165, 42, 13, 48, 150, 50, 107, 86, 49, 40, 198]
 Maintien de l’ordre en manifestation [118, 67, 75]
-Quartiers (dont armement police municipale, etc) [124, 57, 113, 135, 139] # titre : police
-Surveillance/contrôle [142, 187, 21, 26, 93] # titre : police
+Surveillance/contrôle [124, 57, 113, 135, 139] # titre : police
+Quartiers (dont armement police municipale, etc) [142, 187, 21, 26, 93] # titre : police
 Instruction/autorité [183, 84, 89, 27, 10] # titre : école
 Éducation [158, 144, 36, 38, 34, 134, 149] # titre : école
 Sécurité civile [85] # TODO
