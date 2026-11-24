@@ -18,7 +18,7 @@ from pathlib import Path
 
 DATASET_DIR = Path(
     "../models/embeddings/qwen3-8b_embeddings_2026-07-21/dataset_with_embeddings"
-)
+) # Chemin de la copie fournie des embeddings pour reproductibilité. Remplacer au besoin si recalcul.
 
 RANDOM_SEED = 42
 
@@ -65,13 +65,17 @@ umap_model = UMAP(
 )
 
 # HDBSCAN
-# TODO : implémenter et tweaker si besoin
+# NOTE : version standard car choix fait de ne pas chercher
+# à réduire automatiquement le nombre de topics et privilégier
+# une lecture manuelle fine pour réaliser les choix de fusion.
 
 # VECTORIZER
 french_stopwords = list(stopwords("fr"))
 vectorizer_model = CountVectorizer(stop_words=french_stopwords)
 
 # CTFIDF
+# NOTE : version standard car choix fait de privilégier une
+# lecture manuelle fine pour réaliser les choix de fusion.
 # Si besoin réduire impact des mots fréquents, utiliser ClassTfidfTransformer
 # ctfidf_model = ClassTfidfTransformer(reduce_frequent_words=True)
 
