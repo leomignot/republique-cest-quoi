@@ -8,7 +8,7 @@
 from datasets import load_from_disk
 import pandas as pd
 import numpy as np
-from umap import UMAP # attention umap-learn pour l'installation
+from umap import UMAP  # attention umap-learn pour l'installation
 from bertopic import BERTopic
 from sklearn.feature_extraction.text import CountVectorizer
 from stopwordsiso import stopwords
@@ -90,9 +90,48 @@ topic_model = BERTopic(
 )
 
 # Fit + transform en utilisant les precomputed_embeddings
-topics, probabilities = topic_model.fit_transform(
+topics, probs = topic_model.fit_transform(
     documents=docs, embeddings=precomputed_embeddings
 )
+
+# %%
+# TODO : fignoler pour fixer le souci d'env.
+# IE : pb reproductibilité UMAP entre uv et conda :
+# BLAS / LAPACK : Accelerate vs OpenBLAS
+# ie l'aléatoire n'est pas parfaitement reproductible entre les deux environnements, même avec random_state fixé.
+# l'initialisation spectrale d'UMAP (décomposition en valeurs propres)
+# et les calculs de distances diffèrent dans les résultats de réduction de dimensionnalité, même avec le même random_state.
+# Cela peut entraîner des variations dans les topics générés par BERTopic.
+
+# import numpy as np
+# from bertopic.dimensionality import BaseDimensionalityReduction
+
+# # UMAP
+# umap_model = UMAP(
+#     n_neighbors=15,  # default=15
+#     n_components=5,  # default=5
+#     min_dist=0.0,  # default=0.0
+#     metric="cosine",  # default="cosine"
+#     random_state=RANDOM_SEED,  # pour reproductibilité
+# )
+
+# reduced = umap_model.fit_transform(precomputed_embeddings)
+# np.save("../models/embeddings/umap_nn15_nc5_md0.0_cosine_seed42.npy", reduced)
+
+
+# reduced = np.load(
+#     "../models/embeddings/umap_nn15_nc5_md0.0_cosine_seed42.npy"
+# )  # sortie de l'ancien env
+
+# topic_model = BERTopic(
+#     language="french",  # affecte l'affichage des caractères
+#     embedding_model=None,  # pas d'embedding_model puisque pré-calculés
+#     umap_model=BaseDimensionalityReduction(),  # n'applique aucune réduction puisque également pré-calculé
+#     vectorizer_model=vectorizer_model,  # enlever les stopwords après embbedings/clustering
+# )
+
+# # Fit + transform en utilisant les reduced dimension (pré-calculées sur les precomputed_embeddings)
+# topics, probs = topic_model.fit_transform(documents=docs, embeddings=reduced)
 
 # %% [markdown]
 # # Tests
@@ -227,7 +266,6 @@ fig_dynamic_topic
 # ATTENTION, PLANTAIT À CAUSE DES NA
 # cf ajout précédent d'une classe "Inconnu" pour les NA dans affiliation_et_gouv
 topics_per_class = topic_model.topics_per_class(docs, classes=affiliations)
-display(topics_per_class)
 
 fig_topics_per_class = topic_model.visualize_topics_per_class(
     topics_per_class,
@@ -246,7 +284,7 @@ fig_topics_per_class
 
 # %%
 # df["topic"] = topics
-# df["probability"] = probabilities
+# df["probability"] = probs
 
 # # joindre le nom/label du topic plutôt que juste l'ID
 # topic_info = topic_model.get_topic_info()[["Topic", "Name"]]
