@@ -19,7 +19,7 @@
 #
 # NOTE : les calculs UMAP et BERTopic n'étant pas strictement reproductibles
 # entre environnements (uv/conda car BLAS/LAPACK diffèrent), l'export complet
-# du modèle BERTopic est fourni,de même qu'un réduction UMAP pré-calculée.
+# du modèle BERTopic est fourni, de même qu'une réduction UMAP pré-calculée.  
 # Le calcul initial a été réalisé dans un environnement conda
 # (cf. bertopic_repu_env.yml).
 
@@ -29,18 +29,21 @@ import pandas as pd
 import numpy as np
 from umap import UMAP  # attention umap-learn pour l'installation
 from bertopic import BERTopic
-from bertopic.dimensionality import BaseDimensionalityReduction
 from sklearn.feature_extraction.text import CountVectorizer
 from stopwordsiso import stopwords
 from pathlib import Path
+from pathlib import Path
+import runpy
+# from bertopic.dimensionality import BaseDimensionalityReduction
 # from bertopic.vectorizers import ClassTfidfTransformer
-
 
 DATASET_DIR = Path(
     "../models/embeddings/qwen3-8b_embeddings_2026-07-21/dataset_with_embeddings"
 )  # Chemin de la copie fournie des embeddings pour reproductibilité. Remplacer au besoin si recalcul.
 # UMAP_PATH = Path("../models/bertopic/umap_nn15_nc5_md0.0_cosine_seed42.npy") # si besoin
-
+MAPPING_PATH = Path(
+    "../files/regroupements_topics.py"
+)  # path liste des regroupements de topics
 RANDOM_SEED = 42
 
 
@@ -60,6 +63,8 @@ df["affiliation_et_gouv"] = df["affiliation_et_gouv"].fillna("Inconnu")
 
 docs = df["texte"].tolist()
 precomputed_embeddings = np.array(df["embedding"].tolist())  # Shape : N * 4096
+
+
 timestamps = df["dateSeance_ts"].tolist()
 affiliations = df["affiliation_et_gouv"].tolist()
 
@@ -102,7 +107,131 @@ topic_model = BERTopic(
 )
 
 # Fit + transform en utilisant les precomputed_embeddings
-topics, probs = topic_model.fit_transform(documents=docs, embeddings=precomputed_embeddings)
+topics, probs = topic_model.fit_transform(
+    documents=docs, embeddings=precomputed_embeddings
+)
+
+# %%
+# ----- Regroupements : chargement + contrôles -----
+
+
+REGROUPEMENTS = runpy.run_path(MAPPING_PATH)[
+    "REGROUPEMENTS"
+]  # lecture du dictionnaire (sans les commentaires)
+
+info = topic_model.get_topic_info().set_index("Topic")
+
+# Chaque topic du modèle (hors -1) doit apparaître exactement une fois à chaque niveau.
+ids_modele = set(info.index) - {-1}
+for niveau, groupes in REGROUPEMENTS.items():
+    ids = [topic_id for topic_ids in groupes.values() for topic_id in topic_ids]
+    assert len(ids) == len(set(ids)), (
+        f"{niveau} : un topic apparaît dans plusieurs groupes"
+    )
+    assert set(ids) == ids_modele, (
+        f"{niveau} : écart entre le modèle et les regroupements. "
+        f"Absents des regroupements : {sorted(ids_modele - set(ids))}. "
+        f"Absents du modèle : {sorted(set(ids) - ids_modele)}"
+    )
+
+# Correspondance topic de base -> libellé pour chacun des trois niveaux.
+LIBELLES_TOPICS = {
+    niveau: {
+        int(topic_id): libelle
+        for libelle, topic_ids in groupes.items()
+        for topic_id in topic_ids
+    }
+    for niveau, groupes in REGROUPEMENTS.items()
+}
+
+# test sagouin
+df["topic_base"] = (
+    topic_model.topics_
+)  # pas la variable `topics` de fit_transform (avant réaffectation)
+
+# Le topic -1 reste comme -1 ; les autres topics reprennent
+# directement le libellé du groupe manuel.
+for n in (1, 2, 3):
+    niveau = f"niveau{n}"
+    # TODO: aviser pour les hors topics, mais pas de fillna sur -1 si on veut garder trace
+    df[f"n{n}"] = df["topic_base"].map(LIBELLES_TOPICS[niveau])
+    df[niveau] = df[f"n{n}"]
+
+# Table indexée par topic de base, utilisée pour l'export.
+ref = pd.DataFrame(
+    {f"n{n}": pd.Series(LIBELLES_TOPICS[f"niveau{n}"]) for n in (1, 2, 3)}
+)
+ref.index.name = "Topic"
+
+# %%
+ref
+
+# %%
+# # ----- Un modèle BERTopic fusionné par niveau -----
+
+
+# def modele_au_niveau(n):
+#     """Modèle de base rechargé, fusionné selon les regroupements du niveau n, avec libellés."""
+#     m = (
+#         charger_modele_base()
+#     )  # rechargé du disque : le modèle de base n'est jamais modifié
+#     groupes = REGROUPEMENTS[f"niveau{n}"]
+#     m.merge_topics(
+#         docs, [topic_ids for topic_ids in groupes.values() if len(topic_ids) > 1]
+#     )
+
+#     # merge_topics renumérote : on relie les nouveaux identifiants aux libellés via topics_
+#     corr = pd.DataFrame(
+#         {"id": m.topics_, "lib": df[f"niveau{n}"].values}
+#     ).drop_duplicates()
+#     assert corr["id"].is_unique, "un topic fusionné porte plusieurs libellés"
+#     m.set_topic_labels(dict(zip(corr["id"], corr["lib"])))
+#     return m
+
+
+# topic_model_n3 = modele_au_niveau(3)
+# topic_model_n2 = modele_au_niveau(2)
+# topic_model_n1 = modele_au_niveau(1)
+
+
+# %%
+# ----- Fusion simple au niveau N -----
+import copy
+
+def merge_topics_niveau(n):
+    """
+    Fusionne les topics au niveau N directement,
+    en utilisant les regroupements définis dans REGROUPEMENTS.
+    """
+    # niveau = déjà défini
+    m = copy.deepcopy(topic_model)
+    groupes = REGROUPEMENTS[niveau]
+
+    # Extraire uniquement les groupes avec plus d'un topic
+    # (pas besoin de fusionner si seul topic du groupe)
+    topics_to_merge = [
+        topic_ids for topic_ids in groupes.values() if len(topic_ids) > 1
+    ]
+
+    # Fusionner sur la copie
+    m.merge_topics(docs, topics_to_merge)
+
+    # Compteurs
+    merged_count = len(topics_to_merge)
+    unchanged_count = len([g for g in groupes.values() if len(g) == 1])
+    print(f"Niveau {n} : {merged_count} fusions, {unchanged_count} inchangés")
+    
+    return m
+
+
+# Appliquer
+topic_model_n3 = merge_topics_niveau(3)
+# topic_model_n2 = merge_topics_niveau(2)
+# topic_model_n1 = merge_topics_niveau(1)
+
+
+# %%
+topic_model_n3
 
 # %% [markdown]
 # # Tests
@@ -120,13 +249,13 @@ topics, probs = topic_model.fit_transform(documents=docs, embeddings=precomputed
 # ## Topics
 
 # %%
-topic_model.get_topic_info()
+topic_model_n3.get_topic_info()
 
 # %% [markdown]
 # ## Barchart
 
 # %%
-topic_model.visualize_barchart(
+topic_model_n3.visualize_barchart(
     # n_words=10,  # Select the number of words to display per topic
     # topics = [0,1,2,3,4], # Select specific topics to display
     top_n_topics=8,  # Select the first n topics to display
@@ -134,12 +263,12 @@ topic_model.visualize_barchart(
     # width = 800 # Adjust the width of the plot
 )
 
-# %%
-## Visualisation documents / topics
+# %% [markdown]
+# ## Visualisation documents / topics
 
 # %%
 # TODO : si utilisé pour finaliser une carte, figer une projection umap 2D pour reproductibilité ?
-topic_model.visualize_documents(
+topic_model_n3.visualize_documents(
     docs=docs,
     embeddings=precomputed_embeddings,
     hide_annotations=True,  # better readability
@@ -149,33 +278,33 @@ topic_model.visualize_documents(
 )
 
 # %%
-topic_model.visualize_topics()
+topic_model_n3.visualize_topics()
 
 # %% [markdown]
 # ## Hiérarchie des topics
 
 # %%
-topic_model.visualize_hierarchy()
+topic_model_n3.visualize_hierarchy()
 
 # %%
 hierarchical_topics = topic_model.hierarchical_topics(docs)
 print(topic_model.get_topic_tree(hierarchical_topics))
 
 # %%
-topic_model.visualize_heatmap()
+topic_model_n3.visualize_heatmap()
 
 # %% [markdown]
 # ## Sauvegarder
 
 # %%
 # topic_model.save(
-#     path="../models/bertopic/qwen3-emb-8B-bertopic-default-with-ctfidf",
+#     path="../models/bertopic/qwen3-emb-8B-bertopic-base",
 #     serialization="safetensors",
 #     save_ctfidf=True,
 # )
 
 # %%
-# topic_model = BERTopic.load("../models/bertopic/qwen3-emb-8B-bertopic-default-with-ctfidf")
+# topic_model = BERTopic.load("../models/bertopic/qwen3-emb-8B-bertopic-base")
 
 # %% [markdown]
 # # Vrac
