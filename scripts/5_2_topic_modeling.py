@@ -3,26 +3,25 @@
 
 # %%
 # TODO : se passer de dataset ?
-# TODO : rédiger le chapo
+# TODO : modifier le chapo si besoin
 
 # %% [markdown]
-# des embeddings de texte via un modèle Qwen3-Embedding-8B servi par Ollama,
-#
 # Lit les embeddings issus de 5_1 et construit un topic model BERTopic à partir
 # des embeddings pré-calculés et des paramètres fixés (UMAP, HDBSCAN et c-TF-IDF
-# standards, stopwords français). Pas de réduction automatique du nombre de topics,
-# afin de privilégier une lecture manuelle fine.
-#
-# NOTE : UMAP n'étant pas strictement reproductible entre environnements
-# (uv/conda car BLAS/LAPACK diffèrent), la réduction UMAP pré-calculée est
-# également fournie. N.B : le calcul initial umap a été réalisé dans un
-# environnement conda (cf bertopic_repu_env.yml)
+# standards, stopwords français). Aucune réduction automatique du nombre de topics
+# n'est appliquée, afin de privilégier une lecture manuelle fine.
 #
 # Explore les topics (mots-clés, hiérarchie, similarités), puis les fusionne sur la base
 # des similarités et de la lecture des textes pour obtenir 3 niveaux de classification.
 # Analyse les résultats (topics par affiliation, dynamique temporelle).
 #
 # Écrit le modèle BERTopic, les figures HTML et l'export final des documents avec topic.
+#
+# NOTE : les calculs UMAP et BERTopic n'étant pas strictement reproductibles
+# entre environnements (uv/conda car BLAS/LAPACK diffèrent), l'export complet
+# du modèle BERTopic est fourni,de même qu'un réduction UMAP pré-calculée.
+# Le calcul initial a été réalisé dans un environnement conda
+# (cf. bertopic_repu_env.yml).
 
 # %%
 from datasets import load_from_disk
@@ -40,25 +39,10 @@ from pathlib import Path
 DATASET_DIR = Path(
     "../models/embeddings/qwen3-8b_embeddings_2026-07-21/dataset_with_embeddings"
 )  # Chemin de la copie fournie des embeddings pour reproductibilité. Remplacer au besoin si recalcul.
-UMAP_PATH = Path("../models/bertopic/umap_nn15_nc5_md0.0_cosine_seed42.npy")
+# UMAP_PATH = Path("../models/bertopic/umap_nn15_nc5_md0.0_cosine_seed42.npy") # si besoin
 
 RANDOM_SEED = 42
 
-# True  : charge la réduction UMAP fournie (reproductible entre environnements)
-# False : recalcule UMAP (résultats pouvant différer légèrement selon l'environnement)
-USE_PRECOMPUTED_UMAP = True
-# True : recalcule UMAP et écrase UMAP_PATH (à utiliser pour régénérer le fichier fourni)
-SAVE_UMAP = False
-
-# ----- Charger docs et precomputed embeddings -----
-
-# dataset = load_from_disk(DATASET_DIR)
-# docs = dataset[
-#     "texte"
-# ]  # NOTE: list pas obligatoire mais assure ? list(dataset["texte"])
-# precomputed_embeddings = np.array(
-#     dataset["embedding"]
-# )  # Shape : XXX * 4096 pour qwen3-embedding:8b
 
 # ----- Charger docs et precomputed embeddings -----
 
@@ -79,32 +63,20 @@ precomputed_embeddings = np.array(df["embedding"].tolist())  # Shape : N * 4096
 timestamps = df["dateSeance_ts"].tolist()
 affiliations = df["affiliation_et_gouv"].tolist()
 
+# reduced = np.load(UMAP_PATH)  # si besoin utiliser le UMAP pré-calculé
 
 # ----- Paramètres BERTopic-----
 
 # UMAP
-# Pré-calcul : l'aléatoire d'UMAP n'est pas parfaitement reproductible entre
-# environnements (uv vs conda ; BLAS/LAPACK : Accelerate vs OpenBLAS),
-# même avec random_state fixé. Cela peut changer les topics.
-# On fige donc la sortie UMAP (N * 5) dans un .npy fourni avec le projet.
+# (aussi possible utiliser umap pré-calculé si besoin)
 
-umap_params = dict(
+umap_model = UMAP(
     n_neighbors=15,  # default=15
     n_components=5,  # default=5
     min_dist=0.0,  # default=0.0
     metric="cosine",  # default="cosine"
     random_state=RANDOM_SEED,  # pour reproductibilité
 )
-
-if SAVE_UMAP or not USE_PRECOMPUTED_UMAP:
-    # Calcul (ou recalcul) de la réduction sur les embeddings d'origine
-    reduced = UMAP(**umap_params).fit_transform(precomputed_embeddings)
-    if SAVE_UMAP:
-        np.save(UMAP_PATH, reduced)
-else:
-    reduced = np.load(UMAP_PATH)  # utiliser le UMAP pré-calculé
-
-assert reduced.shape[0] == len(docs), "UMAP pré-calculé incohérent avec le dataset"
 
 # HDBSCAN
 # NOTE : version standard car choix fait de ne pas chercher
@@ -125,13 +97,12 @@ vectorizer_model = CountVectorizer(stop_words=french_stopwords)
 topic_model = BERTopic(
     language="french",  # affecte l'affichage des caractères
     embedding_model=None,  # pas d'embedding_model puisque pré-calculés
-    umap_model=BaseDimensionalityReduction(),  # réduction umap déjà faite (reduced)
+    umap_model=umap_model,  # ou si besoin utiliser le pré-calcul umap (reduced)
     vectorizer_model=vectorizer_model,  # enlever les stopwords après embbedings/clustering
-    # ctfidf_model = ClassTfidfTransformer(reduce_frequent_words=True) # nope mais pour test
 )
 
-# Fit + transform en utilisant les reduced dimensions (pré-calculées sur les precomputed_embeddings)
-topics, probs = topic_model.fit_transform(documents=docs, embeddings=reduced)
+# Fit + transform en utilisant les precomputed_embeddings
+topics, probs = topic_model.fit_transform(documents=docs, embeddings=precomputed_embeddings)
 
 # %% [markdown]
 # # Tests
@@ -167,6 +138,7 @@ topic_model.visualize_barchart(
 ## Visualisation documents / topics
 
 # %%
+# TODO : si utilisé pour finaliser une carte, figer une projection umap 2D pour reproductibilité ?
 topic_model.visualize_documents(
     docs=docs,
     embeddings=precomputed_embeddings,
