@@ -3,8 +3,8 @@
 # TODO: Quid du 85 ?
 Sécurité civile : pour l'instant en dur à part, mais soit regrouper dans son arborescence, soit forcer en -1
 
-## Regroupements niveau 1  
-  
+## Regroupements niveau 1
+
 Politique locale [186, 169, 103, 205, 24, 106, 114, 189, 97, 172, 123, 146, 116, 29, 53, 99, 37, 56, 17, 79, 195]
 Budget/État-providence [60, 31, 175, 173, 126, 176, 180, 201, 76, 74, 105, 191, 159, 197, 156, 101, 58, 12, 122, 22, 174, 82, 179, 171, 161, 108, 88, 52, 92, 162, 15, 65, 69, 32, 91, 204, 190, 46, 120]
 Démocratie parlementaire [200, 3, 19, 20, 182, 98, 83, 196, 128, 14, 23, 47, 140, 167, 18, 35, 16, 11, 73, 177, 151, 55, 194, 185, 160, 72, 39]
