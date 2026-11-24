@@ -84,7 +84,8 @@
 |  | Instruction/autorité |  |
 |  | Éducation  |  |
   
-(Quid du 85 ? Sécurité civile)   
+# TODO: Quid du 85 ?
+Sécurité civile : pour l'instant en dur à part, mais soit regrouper dans son arborescence, soit forcer en -1
 
 ## Regroupements niveau 1  
   
@@ -98,6 +99,7 @@ Réponse judiciaire (répression) [184, 54, 121, 8, 2, 7, 131, 62, 202, 90, 141,
 Religion(s) (Islamophobie républicaine) [25, 63, 30, 1, 109, 127, 68, 136, 165, 42, 13, 48, 150, 50, 107, 86, 49, 40, 198]  # ajout 25
 Police (répression policière) [118, 67, 75, 124, 57, 113, 135, 139, 142, 187, 21, 26, 93]
 École [183, 84, 89, 27, 10, 158, 144, 36, 38, 34, 134, 149]
+Sécurité civile [85] # TODO
   
 ## Regroupements niveau 2
 
@@ -127,7 +129,8 @@ Quartiers (dont armement police municipale, etc) [124, 57, 113, 135, 139] # titr
 Surveillance/contrôle [142, 187, 21, 26, 93] # titre : police
 Instruction/autorité [183, 84, 89, 27, 10] # titre : école
 Éducation [158, 144, 36, 38, 34, 134, 149] # titre : école
-  
+Sécurité civile [85] # TODO
+
 ## Regroupements de Niveau 3  
   
 Polynésie  [186, 169, 103]
@@ -183,3 +186,4 @@ Contrôles [135, 139]
 Quartiers [142, 187, 21, 26, 93] # sous angle police et sécurité
 Instruction/autorité [183, 84, 89, 27, 10] # école
 Éducation [158, 144, 36, 38, 34, 134, 149] # école
+Sécurité civile [85] # TODO
