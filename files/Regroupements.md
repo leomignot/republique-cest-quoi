@@ -155,7 +155,7 @@ Modalités d’élections en cadre général (distinct Nouvelle-Calédonie) [55,
 Agriculture [155, 132, 188]
 Environnement [147, 70, 152, 28, 192]
 Traités internationaux [104, 157, 78, 129]
-Opérations militaires [95, 163, 163, 33, 66, 110]
+Opérations militaires [95, 163, 33, 66, 110]
 Mémoire (Harki, musées, esclavage) [125, 71, 153, 133, 115, 164] # manquait 153, 133, 115
 Langues [5, 181]
 Droit du sol/ Mayotte [166, 4]  # TODO: voir
