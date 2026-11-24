@@ -36,7 +36,6 @@ data/
 biblio/
 models/
 logs/
-files/
 
 # Data Files
 *.csv
