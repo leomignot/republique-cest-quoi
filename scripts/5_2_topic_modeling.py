@@ -38,7 +38,7 @@ from stopwordsiso import stopwords
 # from bertopic.vectorizers import ClassTfidfTransformer
 
 DATASET_DIR = Path(
-    "../models/embeddings/qwen3-8b_embeddings_reproductible"
+    "../models/embeddings/"
 )  # Chemin de la copie fournie des embeddings pour reproductibilité. Remplacer au besoin si recalcul.
 
 MODEL_DIR = Path("../models/bertopic/qwen3-emb-8B-bertopic-base")
@@ -149,7 +149,7 @@ else:
 # topic_model.get_topic_info()
 # topic_model.visualize_barchart()
 # topic_model.visualize_topics()
-# topic_model.visualize_hierarchy()
+topic_model.visualize_hierarchy()
 # topic_model.visualize_documents(df["Texte_clean"].to_list())
 
 # Si modification du libellé et qu'on le veut passer l'argument :

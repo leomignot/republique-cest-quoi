@@ -18,7 +18,6 @@ from pathlib import Path
 from tqdm import tqdm
 import pandas as pd
 from ollama import Client
-from datasets import Dataset
 from transformers import AutoTokenizer
 import numpy as np
 
@@ -241,7 +240,11 @@ def save_outputs(df: pd.DataFrame) -> None:
     )
 
     FINAL_DIR.mkdir(parents=True, exist_ok=True)
-    df.reset_index(drop=True).to_csv(FINAL_DIR / "dataset_repu.csv", index=False)
+    # emb_id : indice du vecteur correspondant dans embeddings.npy
+    # (simple pointeur de position, sans contrôle de contenu, permet
+    # retrouver le bon vecteur si des lignes du df sont supprimées ou réordonnées
+    df["emb_id"] = np.arange(len(df))
+    df.to_csv(FINAL_DIR / "dataset_repu.csv", index=False)
     np.save(FINAL_DIR / "embeddings.npy", embeddings)
     print(f"dataset et embeddings sauvegardés dans {FINAL_DIR}")
 
@@ -263,7 +266,11 @@ def save_outputs(df: pd.DataFrame) -> None:
 
 
 # ----- Step 1 : calcul avec reprise (peut être relancé si ça plante) -----
-compute_embeddings_incremental(texts)
+compute_embeddings_incremental(
+    texts
+)  # TODO: éviter de relancer par mégarder pour l'instant
 
 # ----- Step 2 : une fois terminé, on construit le dataset final propre -----
 save_outputs(df)
+
+# %%
