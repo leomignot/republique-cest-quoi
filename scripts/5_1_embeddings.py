@@ -20,6 +20,9 @@ import pandas as pd
 from ollama import Client
 from datasets import Dataset
 from transformers import AutoTokenizer
+import numpy as np
+
+FINAL_DIR = Path("../models/embeddings")
 
 PATH_ENTREE = "../data/interim/3_1_df_repu.csv"
 
@@ -39,7 +42,6 @@ RETRY_DELAY = 5  # secondes
 CHECKPOINT_DIR = Path("../models/embeddings_checkpoint")
 CHECKPOINT_DIR.mkdir(exist_ok=True)
 EMBEDDINGS_JSONL = CHECKPOINT_DIR / "embeddings.jsonl"
-FINAL_DATASET_DIR = Path("../models/embeddings/dataset_with_embeddings")
 
 # %%
 # Charger le dataset cible
@@ -231,18 +233,17 @@ def compute_embeddings_incremental(texts: list[str], batch_size: int = BATCH_SIZ
     print("Tous les embeddings ont été calculés.")
 
 
-def build_final_dataset(df: pd.DataFrame) -> Dataset:
-    """Assemble texte + embeddings dans un Dataset HuggingFace, une fois le calcul terminé."""
-    embeddings = load_embeddings_jsonl()
+def save_outputs(df: pd.DataFrame) -> None:
+    """Sauvegarde df (CSV) + embeddings (.npy) une fois le calcul terminé."""
+    embeddings = np.array(load_embeddings_jsonl())
     assert len(embeddings) == len(df), (
         f"Désalignement : {len(embeddings)} embeddings vs {len(df)} lignes du df"
     )
 
-    dataset = Dataset.from_pandas(df.reset_index(drop=True))
-    dataset = dataset.add_column("embedding", embeddings)
-    dataset.save_to_disk(FINAL_DATASET_DIR)
-    print(f"Dataset final sauvegardé dans {FINAL_DATASET_DIR}")
-    return dataset
+    FINAL_DIR.mkdir(parents=True, exist_ok=True)
+    df.reset_index(drop=True).to_csv(FINAL_DIR / "dataset_repu.csv", index=False)
+    np.save(FINAL_DIR / "embeddings.npy", embeddings)
+    print(f"dataset et embeddings sauvegardés dans {FINAL_DIR}")
 
 
 # %% [markdown]
@@ -265,4 +266,4 @@ def build_final_dataset(df: pd.DataFrame) -> Dataset:
 compute_embeddings_incremental(texts)
 
 # ----- Step 2 : une fois terminé, on construit le dataset final propre -----
-dataset = build_final_dataset(df)
+save_outputs(df)

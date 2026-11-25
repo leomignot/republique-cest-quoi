@@ -2,7 +2,6 @@
 # # 5-2 - Topic modeling avec BERTopic (analyse thématique)
 
 # %%
-# TODO : se passer de dataset ?
 # TODO : modifier le chapo si besoin
 
 # %% [markdown]
@@ -19,25 +18,27 @@
 #
 # NOTE : les calculs UMAP et BERTopic n'étant pas strictement reproductibles
 # entre environnements (uv/conda car BLAS/LAPACK diffèrent), l'export complet
-# du modèle BERTopic est fourni, de même qu'une réduction UMAP pré-calculée.  
+# du modèle BERTopic est fourni, de même qu'une réduction UMAP pré-calculée.
 # Le calcul initial a été réalisé dans un environnement conda
 # (cf. bertopic_repu_env.yml).
 
 # %%
-from datasets import load_from_disk
+import runpy
+import copy
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from umap import UMAP  # attention umap-learn pour l'installation
 from bertopic import BERTopic
 from sklearn.feature_extraction.text import CountVectorizer
 from stopwordsiso import stopwords
-from pathlib import Path
-import runpy
+
+
 # from bertopic.dimensionality import BaseDimensionalityReduction
 # from bertopic.vectorizers import ClassTfidfTransformer
 
 DATASET_DIR = Path(
-    "../models/embeddings/qwen3-8b_embeddings_2026-07-21/dataset_with_embeddings"
+    "../models/embeddings/qwen3-8b_embeddings_reproductible"
 )  # Chemin de la copie fournie des embeddings pour reproductibilité. Remplacer au besoin si recalcul.
 
 MODEL_DIR = Path("../models/bertopic/qwen3-emb-8B-bertopic-base")
@@ -58,9 +59,15 @@ RANDOM_SEED = 42
 
 # ----- Charger docs et precomputed embeddings -----
 
-dataset = load_from_disk(DATASET_DIR)
-df = dataset.to_pandas()
+df = pd.read_csv(DATASET_DIR / "dataset_repu.csv")
+docs = df["texte"].tolist()
 
+precomputed_embeddings = np.load(DATASET_DIR / "embeddings.npy")  # Shape : N * 4096
+assert len(df) == len(precomputed_embeddings)
+
+# reduced = np.load(UMAP_PATH)  # si besoin utiliser le UMAP pré-calculé
+
+# ----- Préparer les colonnes utiles pour l'analyse -----
 df["dateSeance_ts"] = pd.to_datetime(
     df["dateSeance"].astype(str),
     format="%Y%m%d%H%M%S%f",
@@ -70,14 +77,9 @@ df["dateSeance_day"] = df["dateSeance_ts"].dt.normalize()
 
 df["affiliation_et_gouv"] = df["affiliation_et_gouv"].fillna("Inconnu")
 
-docs = df["texte"].tolist()
-precomputed_embeddings = np.array(df["embedding"].tolist())  # Shape : N * 4096
-
-
 timestamps = df["dateSeance_ts"].tolist()
 affiliations = df["affiliation_et_gouv"].tolist()
 
-# reduced = np.load(UMAP_PATH)  # si besoin utiliser le UMAP pré-calculé
 
 # ----- Modèle BERTopic de base : chargement ou création -----
 if MODEL_DIR.exists():
@@ -142,6 +144,19 @@ else:
 
 
 # %%
+# # Les principales fonctions à tester pour avoir un aperçu simple :
+
+# topic_model.get_topic_info()
+# topic_model.visualize_barchart()
+# topic_model.visualize_topics()
+# topic_model.visualize_hierarchy()
+# topic_model.visualize_documents(df["Texte_clean"].to_list())
+
+# Si modification du libellé et qu'on le veut passer l'argument :
+# custom_labels=True
+
+
+# %%
 ###################################################
 # Fusion des topics
 ###################################################
@@ -201,7 +216,6 @@ ref.to_csv("../files/ref_topics.csv", index=True)  # True pour trace de l'index 
 
 # %%
 # ----- Fusion simple au niveau N -----
-import copy
 
 
 def merge_topics_niveau(n):
@@ -253,9 +267,6 @@ topic_model_n3 = merge_topics_niveau(3)
 topic_model_n2 = merge_topics_niveau(2)
 topic_model_n1 = merge_topics_niveau(1)
 
-
-# %%
-topic_model_n1.get_topic_info()
 
 # %% [markdown]
 # # Tests
