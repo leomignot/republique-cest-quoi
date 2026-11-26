@@ -288,6 +288,13 @@ def run_embedding_production():
         """Calcule les embeddings manquants par batch, avec reprise automatique."""
         start_index = count_saved_embeddings()
 
+        # Vérification de la cohérence du checkpoint
+        if start_index > len(texts):
+            raise ValueError(
+                f"Checkpoint incohérent : {start_index} embeddings "
+                f"pour seulement {len(texts)} textes."
+            )
+
         if start_index > 0:
             print(
                 f"Reprise à l'index {start_index} ({start_index} embeddings déjà calculés)"
