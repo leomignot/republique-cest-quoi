@@ -26,11 +26,12 @@ from pathlib import Path
 PATH_ENTREE = "../data/interim/3_1_df_repu.csv"
 FINAL_DIR = Path("../models/embeddings")
 META_PATH = FINAL_DIR / "embeddings_meta.json"
+
 # SWITCH POUR LE CALCUL DES EMBEDDINGS
 # (PRODUCTION ORIGINELLE VS REPRODUCTIBILITÉ)
 # True pour relancer le pipeline originel des embeddings
 # False pour réutiliser les embeddings existants (reproduction)
-RUN_EMBEDDING_COMPUTATION = True
+RUN_EMBEDDING_COMPUTATION = False
 
 
 def hash_texts(texts) -> str:
@@ -432,5 +433,3 @@ if RUN_EMBEDDING_COMPUTATION:
     run_embedding_production()
 else:
     reuse_embedding()
-
-# %%
