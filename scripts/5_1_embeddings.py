@@ -195,8 +195,6 @@ def run_embedding_production():
             pct = 100 * n_over / len(lengths)
             print(f"Textes > {threshold} tokens : {n_over} ({pct:.1f}%)")
 
-        return lengths
-
     # passage des textes en liste
     texts = df["texte"].tolist()
 
@@ -223,7 +221,7 @@ def run_embedding_production():
     print("\n-------------------------------------------------------------")
     print("Calcul tokens par textes :")
 
-    lengths = print_token_stats(texts)
+    print_token_stats(texts)
 
     # =========================================
     # CALCUL EMBEDDINGS SERVEUR OLLAMA
