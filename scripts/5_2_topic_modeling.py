@@ -3,6 +3,7 @@
 
 # %%
 # TODO : modifier le chapo si besoin
+# TODO : check si les hash tiennent bien.
 
 # %% [markdown]
 # Lit les embeddings issus de 5_1 et construit un topic model BERTopic à partir
@@ -23,6 +24,7 @@
 # (cf. bertopic_repu_env.yml).
 
 # %%
+import hashlib
 import runpy
 import copy
 from pathlib import Path
@@ -47,6 +49,7 @@ MAPPING_PATH = Path(
     "../files/regroupements_topics.py"
 )  # path liste des regroupements de topics
 
+MODEL_HASH_PATH = Path("../models/bertopic/qwen3-emb-8B-bertopic-base_texts_sha256.txt")
 # UMAP_PATH = Path("../models/bertopic/umap_nn15_nc5_md0.0_cosine_seed42.npy") # si besoin
 
 RANDOM_SEED = 42
@@ -81,11 +84,37 @@ timestamps = df["dateSeance_ts"].tolist()
 affiliations = df["affiliation_et_gouv"].tolist()
 
 
+# ----- Calculer le hash des textes pour vérifier correspondance avec modèle BERTopic -----
+def hash_texts(texts) -> str:
+    h = hashlib.sha256()
+    for t in texts:
+        h.update(str(t).encode("utf-8"))
+        h.update(b"\x00")  # séparateur, évite que ["ab","c"] == ["a","bc"]
+    return h.hexdigest()
+
+
+current_hash = hash_texts(df["texte"])
+
 # ----- Modèle BERTopic de base : chargement ou création -----
+
 if MODEL_DIR.exists():
     print(f"Chargement du modèle BERTopic de base : {MODEL_DIR}")
 
     topic_model = BERTopic.load(MODEL_DIR)
+
+    assert len(topic_model.topics_) == len(df), (
+        "Le modèle BERTopic ne correspond pas au dataset (nombre de lignes). "
+        "Supprimer MODEL_DIR pour le recalculer."
+    )
+
+    if not MODEL_HASH_PATH.exists():
+        raise FileNotFoundError(
+            f"{MODEL_HASH_PATH} introuvable : alignement non vérifiable."
+        )
+    assert MODEL_HASH_PATH.read_text() == current_hash, (
+        "Le modèle BERTopic a été entraîné sur d'autres textes. "
+        "Supprimer MODEL_DIR pour le recalculer."
+    )
 
 else:
     print("Modèle de base absent : création en cours...")
@@ -140,6 +169,8 @@ else:
         save_embedding_model=False,
     )
 
+    MODEL_HASH_PATH.write_text(current_hash)
+
     print(f"Modèle sauvegardé : {MODEL_DIR}")
 
 
@@ -149,7 +180,7 @@ else:
 # topic_model.get_topic_info()
 # topic_model.visualize_barchart()
 # topic_model.visualize_topics()
-topic_model.visualize_hierarchy()
+# topic_model.visualize_hierarchy()
 # topic_model.visualize_documents(df["Texte_clean"].to_list())
 
 # Si modification du libellé et qu'on le veut passer l'argument :
@@ -162,7 +193,6 @@ topic_model.visualize_hierarchy()
 ###################################################
 
 # ----- Regroupements : chargement + contrôles -----
-
 
 REGROUPEMENTS = runpy.run_path(MAPPING_PATH)[
     "REGROUPEMENTS"
@@ -193,6 +223,7 @@ LIBELLES_TOPICS = {
     for niveau, groupes in REGROUPEMENTS.items()
 }
 
+# TODO :  check si ok
 # test sagouin
 df["topic_base"] = (
     topic_model.topics_
@@ -247,6 +278,9 @@ def merge_topics_niveau(n):
     ).drop_duplicates()
 
     # Vérifie qu'un topic fusionné correspond à un seul label manuel
+    # Exclure les outliers de la correspondance des labels
+    # TODO : check si ok si sens inverse vent envoyer plusieurs vers -1
+    corr = corr[corr["id"] != -1]
     assert corr["id"].is_unique, (
         f"Un topic fusionné correspond à plusieurs labels au niveau {n}"
     )
