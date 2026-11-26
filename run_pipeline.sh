@@ -35,7 +35,7 @@ etapes=(
     "3_1_identification_republique.py"
     # TODO : intégrer step 4 stat
     "5_1_embeddings.py"
-    "5_2_topic_modeling"
+    "5_2_topic_modeling.py"
 )
 
 cd "$SCRIPTS"
