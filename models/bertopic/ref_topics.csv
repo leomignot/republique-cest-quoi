@@ -1,0 +1,208 @@
+Topic,n1,n2,n3
+0,Enjeux à dimension historique et culturelle,Valeurs (incantation),Mots-slogans
+1,Religion(s) (Islamophobie républicaine),Radicalisation X,Associations
+2,Réponse judiciaire (répression),Justice,Justice
+3,Démocratie parlementaire,Censure/débats parlementaires,Blocage parlementaire budget/retraites
+4,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),Droit du sol/ Mayotte
+5,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),Langues
+6,Discriminations/inégalités,Dicibilité de la haine en ligne (avec gros focus antisémitisme),Antisémitisme
+7,Réponse judiciaire (répression),Justice,Terrorisme
+8,Réponse judiciaire (répression),Justice,Logement
+9,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),Kanaky
+10,École,Instruction/autorité,Instruction/autorité
+11,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+12,Budget/État-providence,Service public,Santé publique
+13,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Séparation église/état
+14,Démocratie parlementaire,Censure/débats parlementaires,Débats COVID/passe sanitaire
+15,Budget/État-providence,Budget,Fiscalité
+16,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+17,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+18,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+19,Démocratie parlementaire,Censure/débats parlementaires,Blocage parlementaire budget/retraites
+20,Démocratie parlementaire,Censure/débats parlementaires,Blocage parlementaire budget/retraites
+21,Police (répression policière),"Quartiers (dont armement police municipale, etc)",Quartiers
+22,Budget/État-providence,Service public,Fonction publique
+23,Démocratie parlementaire,Censure/débats parlementaires,Débats COVID/passe sanitaire
+24,Politique locale,DOM-TOM,Vie chère en Outre-mers
+25,Religion(s) (Islamophobie républicaine),Radicalisation X,Fédérations sportives
+26,Police (répression policière),"Quartiers (dont armement police municipale, etc)",Quartiers
+27,École,Instruction/autorité,Instruction/autorité
+28,Échelle (inter)nationale,Agri-environnement,Environnement
+29,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+30,Religion(s) (Islamophobie républicaine),Radicalisation X,Associations
+31,Budget/État-providence,Insertion professionnelle,Politiques économiques quartiers
+32,Budget/État-providence,Budget,Fiscalité
+33,Échelle (inter)nationale,Affaires étrangères,Opérations militaires
+34,École,Éducation,Éducation
+35,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+36,École,Éducation,Éducation
+37,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+38,École,Éducation,Éducation
+39,Démocratie parlementaire,Élections,Modalités d’élections en cadre général (distinct Nouvelle-Calédonie)
+40,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Laïcité à l’école
+41,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+42,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Séparation église/état
+43,Enjeux à dimension historique et culturelle,Valeurs (incantation),Symboles républicains
+44,Réponse judiciaire (répression),Immigration-Asile,Asile-immigration
+45,Enjeux à dimension historique et culturelle,Valeurs (incantation),Symboles républicains
+46,Budget/État-providence,Budget,Vie sociale économique
+47,Démocratie parlementaire,Institutions,CESE
+48,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Séparation église/état
+49,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Laïcité à l’école
+50,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Neutralité espace public (voile)
+51,Enjeux à dimension historique et culturelle,Réformes constitutionnelles q° territoriales,Réforme constitutionnelle q° territoriales
+52,Budget/État-providence,Service public,Hôpital public
+53,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+54,Réponse judiciaire (répression),Justice,Extrêmes
+55,Démocratie parlementaire,Élections,Modalités d’élections en cadre général (distinct Nouvelle-Calédonie)
+56,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+57,Police (répression policière),Surveillance/contrôle,Images
+58,Budget/État-providence,Service public,Santé publique
+59,Enjeux à dimension historique et culturelle,Réformes constitutionnelles q° territoriales,Réforme constitutionnelle q° territoriales
+60,Budget/État-providence,Insertion professionnelle,Politiques économiques quartiers
+61,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+62,Réponse judiciaire (répression),Justice,Terrorisme
+63,Religion(s) (Islamophobie républicaine),Radicalisation X,Fédérations sportives
+64,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+65,Budget/État-providence,Budget,Fiscalité
+66,Échelle (inter)nationale,Affaires étrangères,Opérations militaires
+67,Police (répression policière),Maintien de l’ordre en manifestation,Maintien de l’ordre en manif
+68,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Lieux de culte
+69,Budget/État-providence,Budget,Fiscalité
+70,Échelle (inter)nationale,Agri-environnement,Environnement
+71,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),"Mémoire (Harki, musées, esclavage)"
+72,Démocratie parlementaire,Élections,Modalités d’élections en cadre général (distinct Nouvelle-Calédonie)
+73,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+74,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+75,Police (répression policière),Maintien de l’ordre en manifestation,Maintien de l’ordre en manif
+76,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+77,Réponse judiciaire (répression),Mineurs,Mineurs
+78,Échelle (inter)nationale,Affaires étrangères,Traités internationaux
+79,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+80,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+81,Discriminations/inégalités,Dicibilité de la haine en ligne (avec gros focus antisémitisme),Dicibilité des discriminations en ligne / presse
+82,Budget/État-providence,Service public,Transport public
+83,Démocratie parlementaire,Censure/débats parlementaires,Gilets jaunes
+84,École,Instruction/autorité,Instruction/autorité
+85,Sécurité civile,Sécurité civile,Sécurité civile
+86,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Neutralité espace public (voile)
+87,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+88,Budget/État-providence,Service public,Hôpital public
+89,École,Instruction/autorité,Instruction/autorité
+90,Réponse judiciaire (répression),ZAD/Émeutes,ZAD/Émeutes
+91,Budget/État-providence,Budget,Vie sociale économique
+92,Budget/État-providence,Service public,Hôpital public
+93,Police (répression policière),"Quartiers (dont armement police municipale, etc)",Quartiers
+94,Réponse judiciaire (répression),Immigration-Asile,Asile-immigration
+95,Échelle (inter)nationale,Affaires étrangères,Opérations militaires
+96,Réponse judiciaire (répression),ZAD/Émeutes,ZAD/Émeutes
+97,Politique locale,DOM-TOM,Vie chère en Outre-mers
+98,Démocratie parlementaire,Censure/débats parlementaires,Gilets jaunes
+99,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+100,Discriminations/inégalités,Dicibilité de la haine en ligne (avec gros focus antisémitisme),Dicibilité des discriminations en ligne / presse
+101,Budget/État-providence,Service public,Santé publique
+102,Enjeux à dimension historique et culturelle,Réformes constitutionnelles q° territoriales,Réforme constitutionnelle q° territoriales
+103,Politique locale,DOM-TOM,Polynésie
+104,Échelle (inter)nationale,Affaires étrangères,Traités internationaux
+105,Budget/État-providence,Insertion professionnelle,Orientation supérieur
+106,Politique locale,DOM-TOM,Vie chère en Outre-mers
+107,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Neutralité espace public (voile)
+108,Budget/État-providence,Service public,Hôpital public
+109,Religion(s) (Islamophobie républicaine),Radicalisation X,Associations
+110,Échelle (inter)nationale,Affaires étrangères,Opérations militaires
+111,Réponse judiciaire (répression),Mineurs,Mineurs
+112,Réponse judiciaire (répression),ZAD/Émeutes,ZAD/Émeutes
+113,Police (répression policière),Surveillance/contrôle,Images
+114,Politique locale,DOM-TOM,Vie chère en Outre-mers
+115,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),"Mémoire (Harki, musées, esclavage)"
+116,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+117,Réponse judiciaire (répression),Immigration-Asile,Asile-immigration
+118,Police (répression policière),Maintien de l’ordre en manifestation,Maintien de l’ordre en manif
+119,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+120,Budget/État-providence,Budget,Vie sociale économique
+121,Réponse judiciaire (répression),Justice,Extrêmes
+122,Budget/État-providence,Service public,Fonction publique
+123,Politique locale,Collectivités territoriales,Compétences territoriales sur l’eau
+124,Police (répression policière),Surveillance/contrôle,Images
+125,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),"Mémoire (Harki, musées, esclavage)"
+126,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+127,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Lieux de culte
+128,Démocratie parlementaire,Censure/débats parlementaires,Débats COVID/passe sanitaire
+129,Échelle (inter)nationale,Affaires étrangères,Traités internationaux
+130,Discriminations/inégalités,"Genre, race et sexualité",Discriminations racistes et homophobes
+131,Réponse judiciaire (répression),Justice,Terrorisme
+132,Échelle (inter)nationale,Agri-environnement,Agriculture
+133,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),"Mémoire (Harki, musées, esclavage)"
+134,École,Éducation,Éducation
+135,Police (répression policière),Surveillance/contrôle,Contrôles
+136,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Lieux de culte
+137,Discriminations/inégalités,"Genre, race et sexualité",Discriminations de genre
+138,Enjeux à dimension historique et culturelle,Réformes constitutionnelles q° territoriales,Réforme constitutionnelle q° territoriales
+139,Police (répression policière),Surveillance/contrôle,Contrôles
+140,Démocratie parlementaire,Institutions,CESE
+141,Réponse judiciaire (répression),ZAD/Émeutes,ZAD/Émeutes
+142,Police (répression policière),"Quartiers (dont armement police municipale, etc)",Quartiers
+143,Discriminations/inégalités,"Genre, race et sexualité",Discriminations racistes et homophobes
+144,École,Éducation,Éducation
+145,Réponse judiciaire (répression),Immigration-Asile,Asile-immigration
+146,Politique locale,Collectivités territoriales,Compétences territoriales sur l’eau
+147,Échelle (inter)nationale,Agri-environnement,Environnement
+148,Discriminations/inégalités,Dicibilité de la haine en ligne (avec gros focus antisémitisme),Dicibilité des discriminations en ligne / presse
+149,École,Éducation,Éducation
+150,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Neutralité espace public (voile)
+151,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+152,Échelle (inter)nationale,Agri-environnement,Environnement
+153,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),"Mémoire (Harki, musées, esclavage)"
+154,Réponse judiciaire (répression),Immigration-Asile,Asile-immigration
+155,Échelle (inter)nationale,Agri-environnement,Agriculture
+156,Budget/État-providence,Service public,Santé publique
+157,Échelle (inter)nationale,Affaires étrangères,Traités internationaux
+158,École,Éducation,Éducation
+159,Budget/État-providence,Insertion professionnelle,Orientation supérieur
+160,Démocratie parlementaire,Élections,Modalités d’élections en cadre général (distinct Nouvelle-Calédonie)
+161,Budget/État-providence,Service public,Transport public
+162,Budget/État-providence,Budget,Fiscalité
+163,Échelle (inter)nationale,Affaires étrangères,Opérations militaires
+164,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),"Mémoire (Harki, musées, esclavage)"
+165,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Séparation église/état
+166,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),Droit du sol/ Mayotte
+167,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+168,Enjeux à dimension historique et culturelle,Valeurs (incantation),Mots-slogans
+169,Politique locale,DOM-TOM,Polynésie
+170,Discriminations/inégalités,"Genre, race et sexualité",Discriminations racistes et homophobes
+171,Budget/État-providence,Service public,Transport public
+172,Politique locale,DOM-TOM,Vie chère en Outre-mers
+173,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+174,Budget/État-providence,Service public,Fonction publique
+175,Budget/État-providence,Insertion professionnelle,Politiques économiques quartiers
+176,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+177,Démocratie parlementaire,Institutions,Fonctionnement/réglement de l’assemblée
+178,Discriminations/inégalités,Dicibilité de la haine en ligne (avec gros focus antisémitisme),Dicibilité des discriminations en ligne / presse
+179,Budget/État-providence,Service public,Transport public
+180,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+181,Enjeux à dimension historique et culturelle,Reconnaissance de la diversité (en République),Langues
+182,Démocratie parlementaire,Censure/débats parlementaires,Blocage parlementaire budget/retraites
+183,École,Instruction/autorité,Instruction/autorité
+184,Réponse judiciaire (répression),Justice,Terrorisme
+185,Démocratie parlementaire,Élections,Modalités d’élections en cadre général (distinct Nouvelle-Calédonie)
+186,Politique locale,DOM-TOM,Polynésie
+187,Police (répression policière),"Quartiers (dont armement police municipale, etc)",Quartiers
+188,Échelle (inter)nationale,Agri-environnement,Agriculture
+189,Politique locale,DOM-TOM,Vie chère en Outre-mers
+190,Budget/État-providence,Budget,Vie sociale économique
+191,Budget/État-providence,Insertion professionnelle,Orientation supérieur
+192,Échelle (inter)nationale,Agri-environnement,Environnement
+193,Réponse judiciaire (répression),Mineurs,Mineurs
+194,Démocratie parlementaire,Élections,Modalités d’élections en cadre général (distinct Nouvelle-Calédonie)
+195,Politique locale,Collectivités territoriales,Collectivités et élus locaux
+196,Démocratie parlementaire,Censure/débats parlementaires,Gilets jaunes
+197,Budget/État-providence,Service public,Santé publique
+198,Religion(s) (Islamophobie républicaine),Visibilité religieuse (musulmane),Laïcité à l’école
+199,Discriminations/inégalités,Dicibilité de la haine en ligne (avec gros focus antisémitisme),Dicibilité des discriminations en ligne / presse
+200,Démocratie parlementaire,Censure/débats parlementaires,Blocage parlementaire budget/retraites
+201,Budget/État-providence,Insertion professionnelle,Insertion professionnelle des jeunes
+202,Réponse judiciaire (répression),Justice,Terrorisme
+203,Enjeux à dimension historique et culturelle,Réformes constitutionnelles q° territoriales,Réforme constitutionnelle q° territoriales
+204,Budget/État-providence,Budget,Vie sociale économique
+205,Politique locale,DOM-TOM,Vie chère en Outre-mers
+206,Enjeux à dimension historique et culturelle,Réformes constitutionnelles q° territoriales,Réforme constitutionnelle q° territoriales
