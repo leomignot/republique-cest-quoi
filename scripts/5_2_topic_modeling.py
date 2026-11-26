@@ -279,7 +279,8 @@ def merge_topics_niveau(n):
 
     # Vérifie qu'un topic fusionné correspond à un seul label manuel
     # Exclure les outliers de la correspondance des labels
-    # TODO : check si ok si sens inverse vent envoyer plusieurs vers -1
+    # TODO : check si ok si sens inverse :
+    # TODO : vérifier le cas de fusion de plusieurs topics vers -1 ? niche
     corr = corr[corr["id"] != -1]
     assert corr["id"].is_unique, (
         f"Un topic fusionné correspond à plusieurs labels au niveau {n}"
