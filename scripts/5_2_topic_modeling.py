@@ -35,8 +35,6 @@ from umap import UMAP  # attention umap-learn pour l'installation
 from bertopic import BERTopic
 from sklearn.feature_extraction.text import CountVectorizer
 from stopwordsiso import stopwords
-
-
 # from bertopic.dimensionality import BaseDimensionalityReduction
 # from bertopic.vectorizers import ClassTfidfTransformer
 
@@ -248,20 +246,26 @@ LIBELLES_TOPICS = {
     }
     for niveau, groupes in REGROUPEMENTS.items()
 }
+# NOTE
+# Injecter un libellé aux outliers (-1) : ne modifie pas le comportement
+# des topic_model mais les labels renvoyés pour ajout info dans les datasets
+# (et pas avoir des NaN silencieux). N'affecte pas les customs names des TM :
+# est exclu plus bas de la corr pour ne pas affecter les topic_model
+for mapping in LIBELLES_TOPICS.values():
+    mapping[-1] = (
+        "-1_Outliers"  # NOTE : choix - Si on ne fixe rien ici renverra des NaN dans df
+    )
 
-# TODO :  check si ok
-# test sagouin
-df["topic_base"] = (
-    topic_model.topics_
-)  # pas la variable `topics` de fit_transform (avant réaffectation)
+# Topics du modèle de base, qu'il soit chargé ou nouvellement entraîné.
+# (ie topic_model.topics_ vs topics)
+df["topic_id_base"] = topic_model.topics_
 
-# Le topic -1 reste comme -1 ; les autres topics reprennent
-# directement le libellé du groupe manuel.
+# Pour les topics 1, 2 et 3, chaque niveau reçoit le libellé du groupe
+# attribué manuellement.
+# Le topic -1 renvoie l'info fixée au dessus dans mapping[-1] = XXXXXX
 for n in (1, 2, 3):
     niveau = f"niveau{n}"
-    # TODO: aviser pour les hors topics, mais pas de fillna sur -1 si on veut garder trace
-    df[f"n{n}"] = df["topic_base"].map(LIBELLES_TOPICS[niveau])
-    df[niveau] = df[f"n{n}"]
+    df[niveau] = df["topic_id_base"].map(LIBELLES_TOPICS[niveau])
 
 # Table indexée par topic de base, utilisée pour l'export.
 ref = pd.DataFrame(
@@ -306,9 +310,8 @@ def merge_topics_niveau(n):
     ).drop_duplicates()
 
     # Vérifie qu'un topic fusionné correspond à un seul label manuel
-    # Exclure les outliers de la correspondance des labels
-    # TODO : check si ok si sens inverse :
-    # TODO : vérifier le cas de fusion de plusieurs topics vers -1 ? niche
+    # `-1`: Exclure les outliers de la correspondance des labels
+    # et donc ne pas y toucher dans le bertopic topic_model_nX
     corr = corr[corr["id"] != -1]
     assert corr["id"].is_unique, (
         f"Un topic fusionné correspond à plusieurs labels au niveau {n}"
@@ -335,6 +338,10 @@ topic_model_n1 = merge_topics_niveau(1)
 # # Tests
 
 # %%
+df
+
+
+# %%
 # # Les principales fonctions à tester pour avoir un aperçu simple :
 
 # topic_model.get_topic_info()
@@ -357,56 +364,40 @@ topic_model_n3.get_topic_info()
 # ## Barchart
 
 # %%
-topic_model_n3.visualize_barchart(
-    # n_words=10,  # Select the number of words to display per topic
-    # topics = [0,1,2,3,4], # Select specific topics to display
-    top_n_topics=8,  # Select the first n topics to display
-    # height = 300, # Adjust the height of the plot
-    # width = 800 # Adjust the width of the plot
-)
+# topic_model_n3.visualize_barchart(
+#     # n_words=10,  # Select the number of words to display per topic
+#     # topics = [0,1,2,3,4], # Select specific topics to display
+#     top_n_topics=8,  # Select the first n topics to display
+#     # height = 300, # Adjust the height of the plot
+#     # width = 800 # Adjust the width of the plot
+# )
 
 # %% [markdown]
 # ## Visualisation documents / topics
 
 # %%
-# TODO : si utilisé pour finaliser une carte, figer une projection umap 2D pour reproductibilité ?
-topic_model.visualize_documents(
-    docs=docs,
-    embeddings=precomputed_embeddings,
-    hide_annotations=True,  # better readability
-    # topics=[0, 1, 2, 3],  # Select topics to highlight
-    # height = 300, # Adjust the height of the plot
-    # width = 800 # Adjust the width of the plot
-)
-
-# %%
-topic_model_n3.visualize_topics()
+# # TODO : si utilisé pour finaliser une carte, figer une projection umap 2D pour reproductibilité ?
+# topic_model.visualize_documents(
+#     docs=docs,
+#     embeddings=precomputed_embeddings,
+#     hide_annotations=True,  # better readability
+#     # topics=[0, 1, 2, 3],  # Select topics to highlight
+#     # height = 300, # Adjust the height of the plot
+#     # width = 800 # Adjust the width of the plot
+# )
 
 # %% [markdown]
 # ## Hiérarchie des topics
 
 # %%
-topic_model_n2.visualize_hierarchy()
+# topic_model.visualize_hierarchy()
 
 # %%
-hierarchical_topics = topic_model.hierarchical_topics(docs)
-print(topic_model.get_topic_tree(hierarchical_topics))
+# hierarchical_topics = topic_model.hierarchical_topics(docs)
+# print(topic_model.get_topic_tree(hierarchical_topics))
 
 # %%
-topic_model_n3.visualize_heatmap()
-
-# %% [markdown]
-# ## Sauvegarder
-
-# %%
-# topic_model.save(
-#     path="../models/bertopic/qwen3-emb-8B-bertopic-base",
-#     serialization="safetensors",
-#     save_ctfidf=True,
-# )
-
-# %%
-# topic_model = BERTopic.load("../models/bertopic/qwen3-emb-8B-bertopic-base")
+# topic_model.visualize_heatmap()
 
 # %% [markdown]
 # # Vrac
@@ -429,57 +420,41 @@ topic_model_n3.visualize_heatmap()
 #
 
 # %%
-# NOTE : timestamps = df["dateSeance_day"].tolist()
-# Analyse temporelle
-topics_over_time = topic_model_n1.topics_over_time(
-    docs=docs,
-    timestamps=timestamps,
-    global_tuning=True,
-    evolution_tuning=True,
-    nr_bins=20,
-)
+# # NOTE : timestamps = df["dateSeance_day"].tolist()
+# # Analyse temporelle
+# topics_over_time = topic_model_n1.topics_over_time(
+#     docs=docs,
+#     timestamps=timestamps,
+#     global_tuning=True,
+#     evolution_tuning=True,
+#     nr_bins=20,
+# )
 
-fig_dynamic_topic = topic_model_n1.visualize_topics_over_time(
-    topics_over_time,
-    top_n_topics=10,
-)
+# fig_dynamic_topic = topic_model_n1.visualize_topics_over_time(
+#     topics_over_time,
+#     top_n_topics=10,
+# )
 
-fig_dynamic_topic
+# fig_dynamic_topic
 
 # %%
 # fig_dynamic_topic.write_html("../reports/figures/dynamic_topics.html")
 
 # %% [markdown]
-# ## Topic reduction
-
-# %%
-# topics_to_merge = [[X, Y],
-#                    [Z, W]]
-# topic_model.merge_topics(df["Texte_clean"], topics_to_merge)
-
-# %%
-# DONT : # topic_model.reduce_topics(df["Texte_clean"], nr_topics=40) # DONT, IT NUKES THE TOPICS IN MODEL
-# # Access updated topics
-# topics = topic_model.topics_
-
-# %% [markdown]
 # ### Topics per class
 
 # %%
-# ATTENTION, PLANTAIT À CAUSE DES NA
-# cf ajout précédent d'une classe "Inconnu" pour les NA dans affiliation_et_gouv
-topics_per_class = topic_model_n1.topics_per_class(docs, classes=affiliations)
+# # ATTENTION, PLANTAIT À CAUSE DES NA
+# # cf ajout précédent d'une classe "Inconnu" pour les NA dans affiliation_et_gouv
+# topics_per_class = topic_model.topics_per_class(docs, classes=affiliations)
 
-fig_topics_per_class = topic_model_n1.visualize_topics_per_class(
-    topics_per_class,
-    # topics=[0, 1, 2, 3],  # choix spécifique de topics à visualiser
-    top_n_topics=11,  # choix des X principaux topics
-    custom_labels=True,
-)
-fig_topics_per_class
-
-# %%
-topic_model_n1.get_topic_info()
+# fig_topics_per_class = topic_model.visualize_topics_per_class(
+#     topics_per_class,
+#     # topics=[0, 1, 2, 3],  # choix spécifique de topics à visualiser
+#     top_n_topics=11,  # choix des X principaux topics
+#     custom_labels=True,
+# )
+# fig_topics_per_class
 
 # %%
 # fig_topics_per_class.write_html("../reports/figures/topics_per_class.html")
@@ -497,5 +472,37 @@ topic_model_n1.get_topic_info()
 # topic_info = topic_model.get_topic_info()[["Topic", "Name"]]
 # df = df.merge(topic_info, left_on="topic", right_on="Topic", how="left")
 
-# # df = df.drop(columns=["embedding"], errors="ignore")
-# # df.to_csv("../models/embeddings/export_final.csv", index=False)
+# # df.to_csv("../models/bertopic/export_final.csv", index=False)
+
+# %%
+df
+
+# %% [markdown]
+# ## Sauvegarde
+
+# %%
+# Sauvegarde info topics + sortie df
+# TODO : path et names à affiner
+dossier = Path("../models/bertopic/topic_info")
+dossier.mkdir(parents=True, exist_ok=True)
+
+modeles = {
+    "base": topic_model,
+    "niveau1": topic_model_n1,
+    "niveau2": topic_model_n2,
+    "niveau3": topic_model_n3,
+}
+
+for nom, modele in modeles.items():
+    # écrire csv info
+    modele.get_topic_info().to_csv(dossier / f"topics_{nom}.csv", index=False)
+    # ajouter id par niveau dans df (sauf base qu'on a déjà)
+    if nom != "base":
+        df[f"topic_id_{nom}"] = modele.topics_
+
+df.to_csv("../models/bertopic/documents_topics.csv", index=False)  # sortir le full csv
+
+# %%
+df
+
+# %%
