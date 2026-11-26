@@ -27,6 +27,7 @@
 import hashlib
 import runpy
 import copy
+import json
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -49,8 +50,14 @@ MAPPING_PATH = Path(
     "../models/bertopic/regroupements_topics.py"
 )  # path liste des regroupements de topics
 
+# metadonnées des embeddings pour vérifier correspondance avec 5-1
+META_PATH = DATASET_DIR / "embeddings_meta.json"
+
+# hash du modèle bertopic pour vérifier correspondance
 MODEL_HASH_PATH = Path("../models/bertopic/qwen3-emb-8B-bertopic-base_texts_sha256.txt")
-# UMAP_PATH = Path("../models/bertopic/umap_nn15_nc5_md0.0_cosine_seed42.npy") # si besoin
+
+# pré-calcul du UMAP si besoin
+# UMAP_PATH = Path("../models/bertopic/umap_nn15_nc5_md0.0_cosine_seed42.npy")
 
 RANDOM_SEED = 42
 
@@ -66,7 +73,6 @@ df = pd.read_csv(DATASET_DIR / "dataset_repu.csv")
 docs = df["texte"].tolist()
 
 precomputed_embeddings = np.load(DATASET_DIR / "embeddings.npy")  # Shape : N * 4096
-assert len(df) == len(precomputed_embeddings)
 
 # reduced = np.load(UMAP_PATH)  # si besoin utiliser le UMAP pré-calculé
 
@@ -84,7 +90,7 @@ timestamps = df["dateSeance_ts"].tolist()
 affiliations = df["affiliation_et_gouv"].tolist()
 
 
-# ----- Calculer le hash des textes pour vérifier correspondance avec modèle BERTopic -----
+# ----- Calculer le hash des textes pour vérifier correspondance -----
 def hash_texts(texts) -> str:
     h = hashlib.sha256()
     for t in texts:
@@ -94,6 +100,26 @@ def hash_texts(texts) -> str:
 
 
 current_hash = hash_texts(df["texte"])
+
+# ----- Vérification de la correspondance avec 5-1 -----
+
+if not META_PATH.exists():
+    raise FileNotFoundError(f"Métadonnées des embeddings introuvables : {META_PATH}")
+
+with META_PATH.open("r", encoding="utf-8") as f:
+    meta = json.load(f)
+
+# Vérification du nombre de textes et d'embeddings
+assert len(df) == len(precomputed_embeddings), (
+    "Le dataset et les embeddings n'ont pas le même nombre de lignes."
+)
+# Vérification de la forme des embeddings par rapport au métadonnées
+assert list(precomputed_embeddings.shape) == meta["embedding_shape"]
+
+# Vérification que les textes et leur ordre correspondent à 5-1
+assert current_hash == meta["texts_sha256"], (
+    "Les textes ou leur ordre ne correspondent pas aux embeddings."
+)
 
 # ----- Modèle BERTopic de base : chargement ou création -----
 
@@ -243,7 +269,9 @@ ref = pd.DataFrame(
 )
 ref.index.name = "Topic"
 
-ref.to_csv("../models/bertopic/ref_topics.csv", index=True)  # True pour trace de l'index topic
+ref.to_csv(
+    "../models/bertopic/ref_topics.csv", index=True
+)  # True pour trace de l'index topic
 
 # %%
 # ----- Fusion simple au niveau N -----
