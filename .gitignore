@@ -31,12 +31,16 @@ _knit_cache/
 # Fichiers temporaires word/excel
 ~$*
 
-# Folders
-data/
-biblio/
-models/
-logs/
-
 # Data Files
 *.csv
 
+# Folders
+data/
+biblio/
+logs/
+backup/
+
+# Ignorer les modèles, sauf les artefacts BERTopic conservés
+models/*
+!models/bertopic/
+!models/bertopic/ref_topics.csv
