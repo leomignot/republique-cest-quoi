@@ -13,6 +13,9 @@
 # les textes n'ont pas été modifiés depuis le calcul des embeddings.
 
 # %%
+# TODO : check si les hash tiennent bien.
+
+# %%
 import hashlib
 import json
 import datetime
@@ -27,7 +30,7 @@ META_PATH = FINAL_DIR / "embeddings_meta.json"
 # (PRODUCTION ORIGINELLE VS REPRODUCTIBILITÉ)
 # True pour relancer le pipeline originel des embeddings
 # False pour réutiliser les embeddings existants (reproduction)
-RUN_EMBEDDING_COMPUTATION = False
+RUN_EMBEDDING_COMPUTATION = True
 
 
 def hash_texts(texts) -> str:
@@ -121,10 +124,21 @@ def run_embedding_production():
     CHECKPOINT_DIR = Path("../models/embeddings_checkpoint")
     CHECKPOINT_DIR.mkdir(exist_ok=True, parents=True)
     EMBEDDINGS_JSONL = CHECKPOINT_DIR / "embeddings.jsonl"
+    CHECKPOINT_HASH = CHECKPOINT_DIR / "texts_sha256.txt"
 
     # ----- Charger le dataset cible -----
     df = pd.read_csv(PATH_ENTREE)
     print("Shape du df chargé : ", df.shape)
+
+    current_hash = hash_texts(df["texte"])
+    if EMBEDDINGS_JSONL.exists() and (
+        not CHECKPOINT_HASH.exists() or CHECKPOINT_HASH.read_text() != current_hash
+    ):
+        raise RuntimeError(
+            f"Checkpoint obsolète ou sans hash : supprimer {CHECKPOINT_DIR} "
+            "pour repartir de zéro."
+        )
+    CHECKPOINT_HASH.write_text(current_hash)
 
     # ====================================================
     # Estimation des tailles de textes en nombre de tokens
@@ -349,7 +363,7 @@ def reuse_embedding():
     Vérifie via embeddings_meta.json (hash des textes, shape) que les textes
     et leur ordre n'ont pas changé depuis le calcul des embeddings, puis
     attribue emb_id = position de la ligne.
-    NOTE: don uniquement valable si la structure des lignes et les textes n'ont
+    NOTE: donc uniquement valable si la structure des lignes et les textes n'ont
     pas été modifiés depuis le calcul des embeddings.
     """
 
@@ -378,7 +392,7 @@ def reuse_embedding():
     if hash_texts(df["texte"]) != meta["texts_sha256"]:
         raise ValueError(
             "Les textes de 3_1_df_repu.csv ont changé depuis le calcul des embeddings "
-            "(contenu ou ordre). Relancer avec RUN_EMBEDDING_COMPUTATION = True."
+            "(contenu ou ordre). Relancer avec RUN_EMBEDDING_COMPUTATION = True (accès Ollama requis)."
         )
     if list(precomputed_embeddings.shape) != meta["embedding_shape"]:
         raise ValueError("embeddings.npy ne correspond pas aux métadonnées.")
@@ -405,3 +419,5 @@ if RUN_EMBEDDING_COMPUTATION:
     run_embedding_production()
 else:
     reuse_embedding()
+
+# %%
