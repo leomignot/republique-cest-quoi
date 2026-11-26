@@ -46,7 +46,7 @@ DATASET_DIR = Path(
 MODEL_DIR = Path("../models/bertopic/qwen3-emb-8B-bertopic-base")
 
 MAPPING_PATH = Path(
-    "../files/regroupements_topics.py"
+    "../models/bertopic/regroupements_topics.py"
 )  # path liste des regroupements de topics
 
 MODEL_HASH_PATH = Path("../models/bertopic/qwen3-emb-8B-bertopic-base_texts_sha256.txt")
@@ -243,7 +243,7 @@ ref = pd.DataFrame(
 )
 ref.index.name = "Topic"
 
-ref.to_csv("../files/ref_topics.csv", index=True)  # True pour trace de l'index topic
+ref.to_csv("../models/bertopic/ref_topics.csv", index=True)  # True pour trace de l'index topic
 
 # %%
 # ----- Fusion simple au niveau N -----
