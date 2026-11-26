@@ -5,7 +5,7 @@
 # avec reprise incrémentale en cas d'interruption (checkpoint JSONL).
 # Un scan préalable de la taille des textes en tokens permet de vérifier
 # que la fenêtre de contexte choisie est adaptée avant de lancer le calcul.
-# Écrit un CSV + .npy (texte + embedding) sur disque.
+# Écrit un CSV (dataset) + .npy (embedding) + un JSON de métadonnées sur disque.
 #
 # NOTE : dans le cadre d'une ré-exécution du pipeline, le choix est laissé
 # (switch) de réutiliser les embeddings déjà calculés pour reconstruire le
@@ -78,6 +78,7 @@ def run_embedding_production():
     Les résultats sont sauvegardés dans FINAL_DIR :
         - dataset_repu.csv : dataframe enrichi avec les emb_id ;
         - embeddings.npy : matrice des embeddings calculés.
+        - embeddings_meta.json : hash des textes, shape, modèle, num_ctx, date.
 
     Cette fonction constitue la procédure historique de production.
     Elle n'est appelée que lorsque RUN_EMBEDDING_COMPUTATION vaut True.
