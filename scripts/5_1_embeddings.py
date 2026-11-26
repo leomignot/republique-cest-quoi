@@ -195,6 +195,9 @@ def run_embedding_production():
             pct = 100 * n_over / len(lengths)
             print(f"Textes > {threshold} tokens : {n_over} ({pct:.1f}%)")
 
+        # NOTE : retourner les longueurs en plus des prints si usage ultérieur
+        return lengths  # si jamais besoin identifier et filtrer
+
     # passage des textes en liste
     texts = df["texte"].tolist()
 
@@ -221,7 +224,12 @@ def run_embedding_production():
     print("\n-------------------------------------------------------------")
     print("Calcul tokens par textes :")
 
-    print_token_stats(texts)
+    lengths = print_token_stats(texts)
+
+    # Positions disponibles pour examiner ou découper les textes si nécessaire.
+    indices_trop_longs = lengths[lengths > QWEN3_EMBEDDING_RECOMMENDED_MAX].index
+    if len(indices_trop_longs):
+        print(f"Positions des textes trop longs : {indices_trop_longs.tolist()}")
 
     # =========================================
     # CALCUL EMBEDDINGS SERVEUR OLLAMA
