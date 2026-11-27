@@ -10,6 +10,12 @@
 # TODO : voudrait dire possible le faire à bas niveau puis décider de mapper de la vers au dessus
 # n= ne plus partir pour les n1/n2 du topic de base mais des modifs topic dans n3, etc.
 
+# TODO: revoir regroupement des topics
+# TODO: revoir Topic distribution
+# TODO: aviser alternatives representation sur le nom des topics ?
+
+# TODO: check ça : "2026-11-27 13:59:28,732 - BERTopic - WARNING: Using a custom list of topic assignments may lead to errors if topic reduction techniques are used afterwards. Make sure that manually assigning topics is the last step in the pipeline.Note that topic embeddings will also be created through weightedc-TF-IDF embeddings instead of centroid embeddings."
+
 # %% [markdown]
 # Lit les embeddings issus de 5_1 et construit un topic model BERTopic à partir
 # des embeddings pré-calculés et des paramètres fixés (UMAP, HDBSCAN et c-TF-IDF
@@ -357,10 +363,6 @@ topic_model_n1 = merge_topics_niveau(1)
 # # Tests
 
 # %%
-df
-
-
-# %%
 # # Les principales fonctions à tester pour avoir un aperçu simple :
 
 # topic_model.get_topic_info()
@@ -377,13 +379,13 @@ df
 # ## Topics
 
 # %%
-# topic_model_n3.get_topic_info()
+# topic_model.get_topic_info()
 
 # %% [markdown]
 # ## Barchart
 
 # %%
-# topic_model_n3.visualize_barchart(
+# topic_model.visualize_barchart(
 #     # n_words=10,  # Select the number of words to display per topic
 #     # topics = [0,1,2,3,4], # Select specific topics to display
 #     top_n_topics=8,  # Select the first n topics to display
@@ -479,11 +481,6 @@ df
 # fig_topics_per_class.write_html("../reports/figures/topics_per_class.html")
 
 # %%
-# TODO: revoir regroupement des topics
-# TODO: revoir Topic distribution
-# TODO: aviser alternatives representation sur le nom des topics ?
-
-# %%
 # df["topic"] = topics
 # df["probability"] = probs
 
@@ -524,10 +521,10 @@ df.to_csv("../models/bertopic/df_with_topics.csv", index=False)  # sortir le ful
 # ## Tests reduce outliers
 
 # %%
-https://maartengr.github.io/BERTopic/getting_started/outlier_reduction/outlier_reduction.html#chain-strategies
-https://github.com/MaartenGr/BERTopic/blob/master/docs/getting_started/outlier_reduction/outlier_reduction.md
-https://css-polytechnique.github.io/css-ipp-materials/pages/bertopic-tutorial.html#fnref11
-https://css-polytechnique.github.io/css-ipp-materials/pages/techy-notes.html#reduce-outliers-strategies
+# https://maartengr.github.io/BERTopic/getting_started/outlier_reduction/outlier_reduction.html#chain-strategies
+# https://github.com/MaartenGr/BERTopic/blob/master/docs/getting_started/outlier_reduction/outlier_reduction.md
+# https://css-polytechnique.github.io/css-ipp-materials/pages/bertopic-tutorial.html#fnref11
+# https://css-polytechnique.github.io/css-ipp-materials/pages/techy-notes.html#reduce-outliers-strategies
 
 # # Train your BERTopic model
 # topic_model = BERTopic()
@@ -560,6 +557,10 @@ for t in (0.0, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9):
     print(t, moved)
 
 # %%
+# new_topics = reduce_outliers(topic_model, docs, topics, probabilities=probs,
+#                              threshold=0.05, strategy="probabilities")
+# topic_model.update_topics(docs, topics=new_topics)
+
 # Une fois le seuil choisi :
 m = topic_model_n1  # pour tester entre les différents niveaux
 t = 0.6  # TODO: valeur à choisir après tests pour le treshold
@@ -595,7 +596,7 @@ modele_update.update_topics(
 
 # We reduce our embeddings to 2D as it will allows us to quickly iterate later on
 reduced_embeddings = UMAP(
-    n_neighbors=10, n_components=2, min_dist=0.0, metric="cosine"
+    n_neighbors=10, n_components=2, min_dist=0.0, metric="cosine", random_state=RANDOM_SEED
 ).fit_transform(precomputed_embeddings)
 
 # %%
@@ -603,19 +604,17 @@ reduced_embeddings = UMAP(
 topic_model_n1.visualize_documents(
     docs,
     reduced_embeddings=reduced_embeddings,
+    # embeddings=precomputed_embeddings, # sinon repartir direct mais bougera un peu à chaque fois
     hide_document_hover=True,
     hide_annotations=True,
 )
 
 # %%
-# new_topics = reduce_outliers(topic_model, docs, topics, probabilities=probs,
-#                              threshold=0.05, strategy="probabilities")
-# topic_model.update_topics(docs, topics=new_topics)
-
-# %%
+# Et ici le modèle actualisé pour comparer
 modele_update.visualize_documents(
     docs,
     reduced_embeddings=reduced_embeddings,
+    # embeddings=precomputed_embeddings, # sinon repartir direct mais bougera un peu à chaque fois
     hide_document_hover=True,
     hide_annotations=True,
 )
@@ -630,4 +629,7 @@ res["topic_dest"] = new[moved]
 res["label_dest"] = res["topic_dest"].map(noms)
 # res["texte"] = res["texte"].str[:300]     # extrait, les discours sont longs
 
+res.to_csv(
+    "../models/bertopic/topic_info/df_outliers_moved.csv", index=False
+)  # sortir le full csv
 res
