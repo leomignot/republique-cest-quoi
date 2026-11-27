@@ -15,6 +15,7 @@
 # TODO: aviser alternatives representation sur le nom des topics ?
 
 # TODO: check ça : "2026-11-27 13:59:28,732 - BERTopic - WARNING: Using a custom list of topic assignments may lead to errors if topic reduction techniques are used afterwards. Make sure that manually assigning topics is the last step in the pipeline.Note that topic embeddings will also be created through weightedc-TF-IDF embeddings instead of centroid embeddings."
+# = semble ok (évoque ici les nt passés), juste que faut plus modifier/faire de réduction après ?
 
 # %% [markdown]
 # Lit les embeddings issus de 5_1 et construit un topic model BERTopic à partir
@@ -596,7 +597,11 @@ modele_update.update_topics(
 
 # We reduce our embeddings to 2D as it will allows us to quickly iterate later on
 reduced_embeddings = UMAP(
-    n_neighbors=10, n_components=2, min_dist=0.0, metric="cosine", random_state=RANDOM_SEED
+    n_neighbors=10,
+    n_components=2,
+    min_dist=0.0,
+    metric="cosine",
+    random_state=RANDOM_SEED,
 ).fit_transform(precomputed_embeddings)
 
 # %%
