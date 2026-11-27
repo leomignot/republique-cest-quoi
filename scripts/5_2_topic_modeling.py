@@ -3,7 +3,12 @@
 
 # %%
 # TODO : modifier le chapo si besoin
-# TODO : check si les hash tiennent bien.
+# TODO : renvoyer le 85 quelque part !
+# TODO : décider de la réduction des outliers
+# TODO : décider de la stratégie de réduction (sur quel niveau)
+# TODO : + cohérence (ie pas le faire aléatoirement sur chaque niveau et que aboutisse a des regroupements différents)
+# TODO : voudrait dire possible le faire à bas niveau puis décider de mapper de la vers au dessus
+# n= ne plus partir pour les n1/n2 du topic de base mais des modifs topic dans n3, etc.
 
 # %% [markdown]
 # Lit les embeddings issus de 5_1 et construit un topic model BERTopic à partir
@@ -24,6 +29,10 @@
 # (cf. bertopic_repu_env.yml).
 
 # %%
+# =============================================================
+# Imports et définition des constantes / paths
+# =============================================================
+
 import hashlib
 import runpy
 import copy
@@ -60,10 +69,10 @@ MODEL_HASH_PATH = Path("../models/bertopic/qwen3-emb-8B-bertopic-base_texts_sha2
 RANDOM_SEED = 42
 
 
-##############################################################
+# =============================================================
 # Création du modèle BERTopic avec les embeddings pré-calculés
 # ou chargement du modèle pré-entraîné si disponible
-##############################################################
+# =============================================================
 
 # ----- Charger docs et precomputed embeddings -----
 
@@ -142,7 +151,7 @@ if MODEL_DIR.exists():
 
 else:
     print("Modèle de base absent : création en cours...")
-    # ----- Paramètres BERTopic-----
+    # ----- Paramètres BERTopic -----
 
     # UMAP
     # (aussi possible utiliser umap pré-calculé si besoin)
@@ -212,9 +221,9 @@ else:
 
 
 # %%
-###################################################
+# ===============================================
 # Fusion des topics
-###################################################
+# ===============================================
 
 # ----- Regroupements : chargement + contrôles -----
 
@@ -223,6 +232,16 @@ REGROUPEMENTS = runpy.run_path(MAPPING_PATH)[
 ]  # lecture du dictionnaire (sans les commentaires)
 
 info = topic_model.get_topic_info().set_index("Topic")
+
+# NOTE : renvoyer des topics vers -1 n'est pas géré (volontairement).
+# La validation ci-dessous exclut -1 des groupes. Si ce besoin apparaît :
+# - mettre -1 EN PREMIER dans le groupe : merge_topics prend topic_group[0]
+#   comme identifiant résultant (sinon les outliers sont absorbés par un topic) ;
+# - donner à ce groupe le même libellé que mapping[-1] ("-1_Outliers"), sinon
+#   l'assertion d'unicité de corr échoue (deux libellés pour l'id -1) ;
+# - adapter la validation pour accepter -1 dans un groupe ;
+# - documenter que -1 regroupe alors outliers d'origine et topics renvoyés
+#   (topic_id_base conserve la distinction, pas topic_id_niveauN).
 
 # Chaque topic du modèle (hors -1) doit apparaître exactement une fois à chaque niveau.
 ids_modele = set(info.index) - {-1}
@@ -249,8 +268,8 @@ LIBELLES_TOPICS = {
 # NOTE
 # Injecter un libellé aux outliers (-1) : ne modifie pas le comportement
 # des topic_model mais les labels renvoyés pour ajout info dans les datasets
-# (et pas avoir des NaN silencieux). N'affecte pas les customs names des TM :
-# est exclu plus bas de la corr pour ne pas affecter les topic_model
+# (et pas avoir des NaN silencieux). Selon choix plus bas (enlever ou
+# non de corr), affectera ou non les customs names des TM pour -1
 for mapping in LIBELLES_TOPICS.values():
     mapping[-1] = (
         "-1_Outliers"  # NOTE : choix - Si on ne fixe rien ici renverra des NaN dans df
@@ -269,7 +288,7 @@ for n in (1, 2, 3):
 
 # Table indexée par topic de base, utilisée pour l'export.
 ref = pd.DataFrame(
-    {f"n{n}": pd.Series(LIBELLES_TOPICS[f"niveau{n}"]) for n in (1, 2, 3)}
+    {f"niveau{n}": pd.Series(LIBELLES_TOPICS[f"niveau{n}"]) for n in (1, 2, 3)}
 )
 ref.index.name = "Topic"
 
@@ -277,7 +296,7 @@ ref.to_csv(
     "../models/bertopic/ref_topics.csv", index=True
 )  # True pour trace de l'index topic
 
-# %%
+
 # ----- Fusion simple au niveau N -----
 
 
@@ -310,9 +329,10 @@ def merge_topics_niveau(n):
     ).drop_duplicates()
 
     # Vérifie qu'un topic fusionné correspond à un seul label manuel
-    # `-1`: Exclure les outliers de la correspondance des labels
-    # et donc ne pas y toucher dans le bertopic topic_model_nX
-    corr = corr[corr["id"] != -1]
+    # NOTE : décommenter corr = blablabla `-1` pour exclure les outliers
+    # de la correspondance des labels et donc ne pas y toucher dans le
+    # bertopic topic_model_nX
+    # corr = corr[corr["id"] != -1] # selon ce que l'on veut
     assert corr["id"].is_unique, (
         f"Un topic fusionné correspond à plusieurs labels au niveau {n}"
     )
@@ -332,7 +352,6 @@ def merge_topics_niveau(n):
 topic_model_n3 = merge_topics_niveau(3)
 topic_model_n2 = merge_topics_niveau(2)
 topic_model_n1 = merge_topics_niveau(1)
-
 
 # %% [markdown]
 # # Tests
@@ -358,7 +377,7 @@ df
 # ## Topics
 
 # %%
-topic_model_n3.get_topic_info()
+# topic_model_n3.get_topic_info()
 
 # %% [markdown]
 # ## Barchart
@@ -474,9 +493,6 @@ topic_model_n3.get_topic_info()
 
 # # df.to_csv("../models/bertopic/export_final.csv", index=False)
 
-# %%
-df
-
 # %% [markdown]
 # ## Sauvegarde
 
@@ -495,14 +511,123 @@ modeles = {
 
 for nom, modele in modeles.items():
     # écrire csv info
+    # (si il est rechargé et pas entrainé lors de la session
+    # le topic_baase n'aura pas de Representative_Docs)
     modele.get_topic_info().to_csv(dossier / f"topics_{nom}.csv", index=False)
     # ajouter id par niveau dans df (sauf base qu'on a déjà)
     if nom != "base":
         df[f"topic_id_{nom}"] = modele.topics_
 
-df.to_csv("../models/bertopic/documents_topics.csv", index=False)  # sortir le full csv
+df.to_csv("../models/bertopic/df_with_topics.csv", index=False)  # sortir le full csv
+
+# %% [markdown]
+# ## Tests reduce outliers
 
 # %%
-df
+https://maartengr.github.io/BERTopic/getting_started/outlier_reduction/outlier_reduction.html#chain-strategies
+https://github.com/MaartenGr/BERTopic/blob/master/docs/getting_started/outlier_reduction/outlier_reduction.md
+https://css-polytechnique.github.io/css-ipp-materials/pages/bertopic-tutorial.html#fnref11
+https://css-polytechnique.github.io/css-ipp-materials/pages/techy-notes.html#reduce-outliers-strategies
+
+# # Train your BERTopic model
+# topic_model = BERTopic()
+# topics, probs = topic_model.fit_transform(docs)
+
+# # Reduce outliers using the `embeddings` strategy
+# new_topics = topic_model.reduce_outliers(
+#     docs, topics, embeddings=precomputed_embeddings, strategy="embeddings"
+# )
 
 # %%
+m = topic_model_n1  # pour tester entre les différents niveaux
+ids = sorted(set(m.topics_) - {-1})
+assert ids == list(range(len(ids)))  # ids contigus
+print(
+    "shape topic embeddings :",
+    m.topic_embeddings_.shape,
+    " -> [attendu : (n_topics + 1, 4096)]",
+)
+# permet de tester trheshold = l'effet du seuil sur le nombre de textes déplacés hors outliers
+for t in (0.0, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9):
+    nt = m.reduce_outliers(
+        docs,
+        m.topics_,
+        strategy="embeddings",
+        embeddings=precomputed_embeddings,
+        threshold=t,
+    )
+    moved = sum(1 for o, n in zip(m.topics_, nt) if o == -1 and n != -1)
+    print(t, moved)
+
+# %%
+# Une fois le seuil choisi :
+m = topic_model_n1  # pour tester entre les différents niveaux
+t = 0.6  # TODO: valeur à choisir après tests pour le treshold
+nt = m.reduce_outliers(
+    docs,
+    m.topics_,
+    strategy="embeddings",
+    embeddings=precomputed_embeddings,
+    threshold=t,
+)
+moved = sum(1 for o, n in zip(m.topics_, nt) if o == -1 and n != -1)
+print(t, moved)
+
+old, new = np.array(m.topics_), np.array(nt)
+moved = (old == -1) & (new != -1)
+noms = m.get_topic_info().set_index("Topic")["CustomName"]
+print(pd.Series(new[moved]).value_counts().rename(index=noms))  # destinations
+df.loc[moved, "texte"].sample(10)  # lire des cas
+
+# %%
+# Appliquer sur une copie
+# dépendra du nt fixé juste au dessus (qui dépendra lui même du seuil choisi)
+modele_update = copy.deepcopy(m)
+modele_update.update_topics(
+    docs, topics=nt, vectorizer_model=m.vectorizer_model, ctfidf_model=m.ctfidf_model
+)
+
+# %% [markdown]
+# ## pour matthias et explo
+
+# %%
+# précalculer les deux dimension pour stabiliser la cart et gagner de temps sur les itérations
+
+# We reduce our embeddings to 2D as it will allows us to quickly iterate later on
+reduced_embeddings = UMAP(
+    n_neighbors=10, n_components=2, min_dist=0.0, metric="cosine"
+).fit_transform(precomputed_embeddings)
+
+# %%
+# ici tu mets le modele de référence
+topic_model_n1.visualize_documents(
+    docs,
+    reduced_embeddings=reduced_embeddings,
+    hide_document_hover=True,
+    hide_annotations=True,
+)
+
+# %%
+# new_topics = reduce_outliers(topic_model, docs, topics, probabilities=probs,
+#                              threshold=0.05, strategy="probabilities")
+# topic_model.update_topics(docs, topics=new_topics)
+
+# %%
+modele_update.visualize_documents(
+    docs,
+    reduced_embeddings=reduced_embeddings,
+    hide_document_hover=True,
+    hide_annotations=True,
+)
+
+# %%
+# et ici tu peux comparer ou vont les textes pour voir l'effet
+
+noms = m.get_topic_info().set_index("Topic")["CustomName"]
+
+res = df.loc[moved, ["texte"]].copy()
+res["topic_dest"] = new[moved]
+res["label_dest"] = res["topic_dest"].map(noms)
+# res["texte"] = res["texte"].str[:300]     # extrait, les discours sont longs
+
+res
